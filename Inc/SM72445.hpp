@@ -115,13 +115,6 @@ public:
 	SM72445(const SM72445 &) = delete;
 
 	/**
-	 * @brief Get the Input Voltage measured by the SM72445.
-	 *
-	 * @return optional<float> The input voltage, if successful.
-	 */
-	optional<float> getInputVoltage(void);
-
-	/**
 	 * @brief Get the Input Current measured by the SM72445.
 	 *
 	 * @return optional<float> The input current, if successful.
@@ -129,11 +122,11 @@ public:
 	optional<float> getInputCurrent(void);
 
 	/**
-	 * @brief Get the Output Voltage measured by the SM72445.
+	 * @brief Get the Input Voltage measured by the SM72445.
 	 *
-	 * @return optional<float> The output voltage, if successful.
+	 * @return optional<float> The input voltage, if successful.
 	 */
-	optional<float> getOutputVoltage(void);
+	optional<float> getInputVoltage(void);
 
 	/**
 	 * @brief Get the Output Current measured by the SM72445.
@@ -141,6 +134,13 @@ public:
 	 * @return optional<float> The output current, if successful.
 	 */
 	optional<float> getOutputCurrent(void);
+
+	/**
+	 * @brief Get the Output Voltage measured by the SM72445.
+	 *
+	 * @return optional<float> The output voltage, if successful.
+	 */
+	optional<float> getOutputVoltage(void);
 
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_Test;
