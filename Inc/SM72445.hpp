@@ -35,7 +35,16 @@ public:
 		 * @ref SM72445 Datasheet, Page 14.
 		 * @note These address values should be left shifted by 1 the LSB R/W bit should be added in the I2C call.
 		 */
-		enum class DeviceAddress : uint8_t;
+		enum class DeviceAddress : uint8_t {
+			// ! Note: ADDR000 not supported.
+			ADDR001 = 0x1u,
+			ADDR010 = 0x2u,
+			ADDR011 = 0x3u,
+			ADDR100 = 0x4u,
+			ADDR101 = 0x5u,
+			ADDR110 = 0x6u,
+			ADDR111 = 0x7u,
+		};
 
 		/**
 		 * @brief Memory Address of the SM72445 registers.
@@ -43,7 +52,13 @@ public:
 		 * 		 e.g. reg1 = 0xE1, reg3 = 0xE3, etc.
 		 * 		 This is not clearly stated in the datasheet.
 		 */
-		enum class MemoryAddress : uint8_t;
+		enum class MemoryAddress : uint8_t {
+			REG0 = 0xE0u, // Analogue Channel Configuration. Read only.
+			REG1 = 0xE1u, // Voltage and Current Input/Output Measurements, MPPT Status. Read only.
+			REG3 = 0xE3u, // I2C Override Configuration. Read/Write.
+			REG4 = 0xE4u, // Voltage and Current Input/Output Offsets. Read/Write.
+			REG5 = 0xE5u, // Current Input/Output High/Low Thresholds. Read/Write.
+		};
 
 		/**
 		 * @brief Read a I2C register from the SM72445.
@@ -76,9 +91,60 @@ public:
 	using Register		= I2C::Register;
 
 protected:
-	I2C			 *i2c;
+	I2C *const	  i2c;
 	DeviceAddress deviceAddress;
 
+	const float vDDA;
+
+	const float vInGain;
+	const float vOutGain;
+	const float iInGain;
+	const float iOutGain;
+
 public:
-	SM72445(I2C *i2c, DeviceAddress deviceAddress);
+	SM72445(
+		I2C			 *i2c,
+		DeviceAddress deviceAddress,
+		float		  vInGain,	  // Input Voltage Gain = vInAdc : vInReal
+		float		  vOutGain,	  // Output Voltage Gain = vOutAdc : vOutReal
+		float		  iInGain,	  // Input Current Gain = iInAdc : iInReal
+		float		  iOutGain,	  // Output Current Gain = iOutAdc : iOutReal
+		float		  vDDA = 5.0f // Analog Supply Voltage
+	);
+
+	SM72445(const SM72445 &) = delete;
+
+	/**
+	 * @brief Get the Input Voltage measured by the SM72445.
+	 *
+	 * @return optional<float> The input voltage, if successful.
+	 */
+	optional<float> getInputVoltage(void);
+
+	/**
+	 * @brief Get the Input Current measured by the SM72445.
+	 *
+	 * @return optional<float> The input current, if successful.
+	 */
+	optional<float> getInputCurrent(void);
+
+	/**
+	 * @brief Get the Output Voltage measured by the SM72445.
+	 *
+	 * @return optional<float> The output voltage, if successful.
+	 */
+	optional<float> getOutputVoltage(void);
+
+	/**
+	 * @brief Get the Output Current measured by the SM72445.
+	 *
+	 * @return optional<float> The output current, if successful.
+	 */
+	optional<float> getOutputCurrent(void);
+
+#ifdef SM72445_GTEST_TESTING
+	friend class SM72445_Test;
+
+	FRIEND_TEST(SM72445_Test, constructorAssignsArguments);
+#endif
 };

@@ -8,23 +8,57 @@
 
 #include "SM72445.hpp"
 
-enum class SM72445::I2C::DeviceAddress : uint8_t {
-	// ! Note: ADDR000 not supported.
-	ADDR001 = 0x1u,
-	ADDR010 = 0x2u,
-	ADDR011 = 0x3u,
-	ADDR100 = 0x4u,
-	ADDR101 = 0x5u,
-	ADDR110 = 0x6u,
-	ADDR111 = 0x7u,
-};
+using std::nullopt;
 
-enum class MemoryAddress : uint8_t {
-	REG0 = 0xE0u, // Analogue Channel Configuration. Read only.
-	REG1 = 0xE1u, // Voltage and Current Input/Output Measurements, MPPT Status. Read only.
-	REG3 = 0xE3u, // I2C Override Configuration. Read/Write.
-	REG4 = 0xE4u, // Voltage and Current Input/Output Offsets. Read/Write.
-	REG5 = 0xE5u, // Current Input/Output High/Low Thresholds. Read/Write.
-};
+SM72445::SM72445(
+	I2C			 *i2c,
+	DeviceAddress deviceAddress,
+	float		  vInGain,
+	float		  vOutGain,
+	float		  iInGain,
+	float		  iOutGain,
+	float		  vDDA
+)
+	: i2c(i2c), deviceAddress(deviceAddress),									  //
+	  vInGain(vInGain), vOutGain(vOutGain), iInGain(iInGain), iOutGain(iOutGain), //
+	  vDDA(vDDA) {}
 
-SM72445::SM72445(I2C *i2c, DeviceAddress deviceAddress) : i2c(i2c), deviceAddress(deviceAddress) {}
+optional<float> SM72445::getInputVoltage(void) {
+	auto reg1 = i2c->read(deviceAddress, MemoryAddress::REG1);
+
+	if (!reg1) return nullopt;
+
+	uint16_t vInAdcResult = (reg1.value() & 0x3FFu);
+	float	 vInReal	  = vInAdcResult / this->vInGain / 0x3FF.0p0 * this->vDDA;
+	return vInReal;
+}
+
+optional<float> SM72445::getInputCurrent(void) {
+	auto reg1 = i2c->read(deviceAddress, MemoryAddress::REG1);
+
+	if (!reg1) return nullopt;
+
+	uint16_t iInAdcResult = (reg1.value() >> 10u) & 0x3FFu;
+	float	 iInReal	  = iInAdcResult / this->iInGain / 0x3FF.0p0 * this->vDDA;
+	return iInReal;
+}
+
+optional<float> SM72445::getOutputVoltage(void) {
+	auto reg1 = i2c->read(deviceAddress, MemoryAddress::REG1);
+
+	if (!reg1) return nullopt;
+
+	uint16_t vOutAdcResult = (reg1.value() >> 20u) & 0x3FFu;
+	float	 vOutReal	   = vOutAdcResult / this->vOutGain / 0x3FF.0p0 * this->vDDA;
+	return vOutReal;
+}
+
+optional<float> SM72445::getOutputCurrent(void) {
+	auto reg1 = i2c->read(deviceAddress, MemoryAddress::REG1);
+
+	if (!reg1) return nullopt;
+
+	uint16_t iOutAdcResult = (reg1.value() >> 30u) & 0x3FFu;
+	float	 iOutReal	   = iOutAdcResult / this->iOutGain / 0x3FF.0p0 * this->vDDA;
+	return iOutReal;
+}
