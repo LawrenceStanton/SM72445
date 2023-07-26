@@ -138,6 +138,7 @@ public:
 	 * @brief Get the Input Current measured by the SM72445.
 	 *
 	 * @return optional<float> The input current, if successful.
+	 * @ref SM72445 Datasheet, Page 12, reg1.
 	 */
 	optional<float> getInputCurrent(void) const;
 
@@ -145,6 +146,7 @@ public:
 	 * @brief Get the Input Voltage measured by the SM72445.
 	 *
 	 * @return optional<float> The input voltage, if successful.
+	 * @ref SM72445 Datasheet, Page 12, reg1.
 	 */
 	optional<float> getInputVoltage(void) const;
 
@@ -152,6 +154,7 @@ public:
 	 * @brief Get the Output Current measured by the SM72445.
 	 *
 	 * @return optional<float> The output current, if successful.
+	 * @ref SM72445 Datasheet, Page 12, reg1.
 	 */
 	optional<float> getOutputCurrent(void) const;
 
@@ -159,6 +162,7 @@ public:
 	 * @brief Get the Output Voltage measured by the SM72445.
 	 *
 	 * @return optional<float> The output voltage, if successful.
+	 * @ref SM72445 Datasheet, Page 12, reg1.
 	 */
 	optional<float> getOutputVoltage(void) const;
 
@@ -167,10 +171,30 @@ public:
 	 *
 	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
 	 * @return optional<float> The pin voltage, if successful.
+	 * @ref SM72445 Datasheet, Page 12, reg0.
 	 */
 	optional<float> getAnalogueChannelVoltage(AnalogueChannel channel) const;
 
+	/**
+	 * @brief Get the ADC measurement offset for a given electrical property.
+	 *
+	 * @param property The electrical property to get the offset for.
+	 * @return optional<float> The offset, if successful.
+	 * @note Voltage measurements are returned in Volts.
+	 * @note Current measurements are returned in Amps.
+	 * @ref SM72445 Datasheet, Page 12, reg4.
+	 */
+	optional<float> getOffset(ElectricalProperty property) const;
+
 private:
+	/**
+	 * @brief Get an electrical measurement from the SM72445.
+	 *
+	 * @param property The electrical property to get the measurement for.
+	 * @return optional<float> The measurement, if successful.
+	 * @note Voltage measurements are returned in Volts.
+	 * @note Current measurements are returned in Amps.
+	 */
 	optional<float> getElectricalMeasurement(ElectricalProperty property) const;
 
 	/**
@@ -189,6 +213,8 @@ private:
 	 * @return float The apparent pin voltage.
 	 */
 	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const;
+
+	float getGain(SM72445::ElectricalProperty property) const;
 
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_Test;

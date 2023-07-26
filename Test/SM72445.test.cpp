@@ -77,10 +77,10 @@ TEST_F(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid) 
 
 TEST_F(SM72445_Test, getInputCurrentNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FC00ul) << 0)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'F3FFul) << 0)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FEAAul) << 0)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FD55ul) << 0)));
+		.WillOnce(Return(~(~Register(0xFC00ul) << 0)))
+		.WillOnce(Return(~(~Register(0xF3FFul) << 0)))
+		.WillOnce(Return(~(~Register(0xFEAAul) << 0)))
+		.WillOnce(Return(~(~Register(0xFD55ul) << 0)));
 	EXPECT_FLOAT_EQ(sm72445.getInputCurrent().value(), 0.0f);
 	EXPECT_FLOAT_EQ(sm72445.getInputCurrent().value(), 10.0f);
 	EXPECT_FLOAT_EQ(sm72445.getInputCurrent().value(), 6.6666666f);
@@ -94,10 +94,10 @@ TEST_F(SM72445_Test, getInputCurrentReturnsNulloptIfI2CReadFails) {
 
 TEST_F(SM72445_Test, getInputVoltageNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FC00ul) << 10)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'F3FFul) << 10)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FEAAul) << 10)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FD55ul) << 10)));
+		.WillOnce(Return(~(~Register(0xFC00ul) << 10)))
+		.WillOnce(Return(~(~Register(0xF3FFul) << 10)))
+		.WillOnce(Return(~(~Register(0xFEAAul) << 10)))
+		.WillOnce(Return(~(~Register(0xFD55ul) << 10)));
 	EXPECT_FLOAT_EQ(sm72445.getInputVoltage().value(), 0.0f);
 	EXPECT_FLOAT_EQ(sm72445.getInputVoltage().value(), 10.0f);
 	EXPECT_FLOAT_EQ(sm72445.getInputVoltage().value(), 6.6666666f);
@@ -111,10 +111,10 @@ TEST_F(SM72445_Test, getInputVoltageReturnsNulloptIfI2CReadFails) {
 
 TEST_F(SM72445_Test, getOutputCurrentNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FC00ul) << 20)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'F3FFul) << 20)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FEAAul) << 20)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FD55ul) << 20)));
+		.WillOnce(Return(~(~Register(0xFC00ul) << 20)))
+		.WillOnce(Return(~(~Register(0xF3FFul) << 20)))
+		.WillOnce(Return(~(~Register(0xFEAAul) << 20)))
+		.WillOnce(Return(~(~Register(0xFD55ul) << 20)));
 	EXPECT_FLOAT_EQ(sm72445.getOutputCurrent().value(), 0.0f);
 	EXPECT_FLOAT_EQ(sm72445.getOutputCurrent().value(), 10.0f);
 	EXPECT_FLOAT_EQ(sm72445.getOutputCurrent().value(), 6.6666666f);
@@ -128,10 +128,10 @@ TEST_F(SM72445_Test, getOutputCurrentReturnsNulloptIfI2CReadFails) {
 
 TEST_F(SM72445_Test, getOutputVoltageNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FC00ul) << 30)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'F3FFul) << 30)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FEAAul) << 30)))
-		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FD55ul) << 30)));
+		.WillOnce(Return(~(~Register(0xFC00ul) << 30)))
+		.WillOnce(Return(~(~Register(0xF3FFul) << 30)))
+		.WillOnce(Return(~(~Register(0xFEAAul) << 30)))
+		.WillOnce(Return(~(~Register(0xFD55ul) << 30)));
 	EXPECT_FLOAT_EQ(sm72445.getOutputVoltage().value(), 0.0f);
 	EXPECT_FLOAT_EQ(sm72445.getOutputVoltage().value(), 10.0f);
 	EXPECT_FLOAT_EQ(sm72445.getOutputVoltage().value(), 6.6666666f);
@@ -192,4 +192,65 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH2), nullopt);
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH4), nullopt);
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH6), nullopt);
+}
+
+TEST_F(SM72445_Test, getInputCurrentOffsetNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
+		.WillOnce(Return(~(~Register(0x00ul) << 0)))
+		.WillOnce(Return(~(~Register(0xFFul) << 0)))
+		.WillOnce(Return(~(~Register(0xAAul) << 0)))
+		.WillOnce(Return(~(~Register(0x55ul) << 0)));
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 3.3333333f);
+}
+
+TEST_F(SM72445_Test, getInputVoltageOffsetNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
+		.WillOnce(Return(~(~Register(0x00ul) << 8)))
+		.WillOnce(Return(~(~Register(0xFFul) << 8)))
+		.WillOnce(Return(~(~Register(0xAAul) << 8)))
+		.WillOnce(Return(~(~Register(0x55ul) << 8)));
+
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 3.3333333f);
+}
+
+TEST_F(SM72445_Test, getOutputCurrentOffsetNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
+		.WillOnce(Return(~(~Register(0x00ul) << 16)))
+		.WillOnce(Return(~(~Register(0xFFul) << 16)))
+		.WillOnce(Return(~(~Register(0xAAul) << 16)))
+		.WillOnce(Return(~(~Register(0x55ul) << 16)));
+
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 3.3333333f);
+}
+
+TEST_F(SM72445_Test, getOutputVoltageOffsetNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
+		.WillOnce(Return(~(~Register(0x00ul) << 24)))
+		.WillOnce(Return(~(~Register(0xFFul) << 24)))
+		.WillOnce(Return(~(~Register(0xAAul) << 24)))
+		.WillOnce(Return(~(~Register(0x55ul) << 24)));
+
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 3.3333333f);
+}
+
+// ? getOffset() Normal Tests exercised by above individual Electrical Property test cases.
+
+TEST_F(SM72445_Test, getOffsetReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN), nullopt);
+	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN), nullopt);
+	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT), nullopt);
+	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT), nullopt);
 }

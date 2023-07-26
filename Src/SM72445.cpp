@@ -10,6 +10,21 @@
 
 using std::nullopt;
 
+float SM72445::getGain(SM72445::ElectricalProperty property) const {
+	switch (property) {
+	case ElectricalProperty::CURRENT_IN:
+		return this->iInGain;
+	case ElectricalProperty::VOLTAGE_IN:
+		return this->vInGain;
+	case ElectricalProperty::CURRENT_OUT:
+		return this->iOutGain;
+	case ElectricalProperty::VOLTAGE_OUT:
+		return this->vOutGain;
+	default:
+		return 0.0;
+	}
+}
+
 SM72445::SM72445(
 	I2C			 *i2c,
 	DeviceAddress deviceAddress,
@@ -28,27 +43,12 @@ optional<float> SM72445::getElectricalMeasurement(ElectricalProperty property) c
 
 	if (!reg1) return nullopt;
 
-	uint16_t adcResult = (reg1.value() >> (static_cast<uint8_t>(property) * 10u)) & 0x3FFu;
+	const uint16_t adcResult = (reg1.value() >> (static_cast<uint8_t>(property) * 10u)) & 0x3FFu;
 
-	float gain = 0.0f;
-	switch (property) {
-	case ElectricalProperty::CURRENT_IN:
-		gain = this->iInGain;
-		break;
-	case ElectricalProperty::VOLTAGE_IN:
-		gain = this->vInGain;
-		break;
-	case ElectricalProperty::CURRENT_OUT:
-		gain = this->iOutGain;
-		break;
-	case ElectricalProperty::VOLTAGE_OUT:
-		gain = this->vOutGain;
-		break;
-	default:
-		return nullopt;
-	}
+	const float gain = getGain(property);
+	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
 
-	float measurement = convertAdcResultToPinVoltage(adcResult, 10u) / gain;
+	const float measurement = convertAdcResultToPinVoltage(adcResult, 10u) / gain;
 	return measurement;
 }
 
@@ -75,6 +75,20 @@ optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) cons
 
 	const float voltage = convertAdcResultToPinVoltage(adcResult.value(), 10u);
 	return voltage;
+}
+
+optional<float> SM72445::getOffset(ElectricalProperty property) const {
+	auto reg4 = this->i2c->read(this->deviceAddress, MemoryAddress::REG4);
+
+	if (!reg4) return nullopt;
+
+	const uint16_t adcOffset = (reg4.value() >> (static_cast<uint8_t>(property) * 8u)) & 0xFFu;
+
+	const float gain = getGain(property);
+	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+
+	const float offset = convertAdcResultToPinVoltage(adcOffset, 8u) / gain;
+	return offset;
 }
 
 optional<uint16_t> SM72445::getAnalogueChannelAdcResult(AnalogueChannel channel) const {
