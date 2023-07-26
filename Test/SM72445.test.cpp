@@ -127,3 +127,54 @@ TEST_F(SM72445_Test, getOutputVoltageReturnsNulloptIfI2CReadFails) {
 	disableI2C();
 	EXPECT_EQ(sm72445.getOutputVoltage(), nullopt);
 }
+
+TEST_F(SM72445_Test, getAnalogueChannelAdcResultNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG0))) //
+		.Times(4)
+		.WillRepeatedly(Return(0x0123'4567'89AB'CDEFull));
+
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH0).value(), 0x01EFu);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH2).value(), 0x02F3u);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH4).value(), 0x009Au);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH6).value(), 0x019Eu);
+}
+
+TEST_F(SM72445_Test, getAnalogueChannelAdcResultReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH0), nullopt);
+}
+
+TEST_F(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue) {
+	// ? This test only considers the specific resolution cases of 8 and 10 bits, the only ones used by the SM72445.
+
+	// 8-bit Resolution
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0000u, 8), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x00FFu, 8), 5.0f);
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0055u, 8), 1.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x00AAu, 8), 3.3333333f);
+
+	// 10-bit Resolution
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0000u, 10), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x03FFu, 10), 5.0f);
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0155u, 10), 1.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x02AAu, 10), 3.3333333f);
+}
+
+TEST_F(SM72445_Test, getAnalogueChannelVoltageNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG0))) //
+		.Times(4)
+		.WillRepeatedly(Return(0x0123'4567'89AB'CDEFull));
+
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH0).value(), 2.4193548f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH2).value(), 3.6901271f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH4).value(), 0.7526882f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH6).value(), 2.0234604f);
+}
+
+TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH0), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH2), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH4), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH6), nullopt);
+}

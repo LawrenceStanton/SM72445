@@ -90,6 +90,16 @@ public:
 	using MemoryAddress = I2C::MemoryAddress;
 	using Register		= I2C::Register;
 
+	/**
+	 * @brief Enumerable for the Analogue Configuration Channels.
+	 */
+	enum class AnalogueChannel : uint8_t {
+		CH0 = 0x0u,
+		CH2 = 0x2u,
+		CH4 = 0x4u,
+		CH6 = 0x6u,
+	};
+
 protected:
 	I2C *const	  i2c;
 	DeviceAddress deviceAddress;
@@ -142,9 +152,40 @@ public:
 	 */
 	optional<float> getOutputVoltage(void);
 
+	/**
+	 * @brief Get an Analogue Configuration Channel Pin Voltage.
+	 *
+	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
+	 * @return optional<float> The pin voltage, if successful.
+	 */
+	optional<float> getAnalogueChannelVoltage(AnalogueChannel channel);
+
+private:
+	/**
+	 * @brief Get an Analogue Configuration Channel Pin Voltage.
+	 *
+	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
+	 * @return optional<float> The pin voltage, if successful.
+	 */
+	optional<uint16_t> getAnalogueChannelAdcResult(AnalogueChannel channel);
+
+	/**
+	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference vDDA.
+	 *
+	 * @param adcResult The ADC Result to convert.
+	 * @param resolution The resolution (in bits) of the ADC measurement.
+	 * @return float The apparent pin voltage.
+	 */
+	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution);
+
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_Test;
 
 	FRIEND_TEST(SM72445_Test, constructorAssignsArguments);
+
+	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultNormallyReturnsValue);
+	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultReturnsNulloptIfI2CReadFails);
+
+	FRIEND_TEST(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue);
 #endif
 };
