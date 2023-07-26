@@ -23,7 +23,7 @@ SM72445::SM72445(
 	  vInGain(vInGain), vOutGain(vOutGain), iInGain(iInGain), iOutGain(iOutGain), //
 	  vDDA(vDDA) {}
 
-optional<float> SM72445::getInputCurrent(void) {
+optional<float> SM72445::getInputCurrent(void) const {
 	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!reg1) return nullopt;
@@ -33,7 +33,7 @@ optional<float> SM72445::getInputCurrent(void) {
 	return iInReal;
 }
 
-optional<float> SM72445::getInputVoltage(void) {
+optional<float> SM72445::getInputVoltage(void) const {
 	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!reg1) return nullopt;
@@ -43,7 +43,7 @@ optional<float> SM72445::getInputVoltage(void) {
 	return vInReal;
 }
 
-optional<float> SM72445::getOutputCurrent(void) {
+optional<float> SM72445::getOutputCurrent(void) const {
 	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!reg1) return nullopt;
@@ -53,7 +53,7 @@ optional<float> SM72445::getOutputCurrent(void) {
 	return iOutReal;
 }
 
-optional<float> SM72445::getOutputVoltage(void) {
+optional<float> SM72445::getOutputVoltage(void) const {
 	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!reg1) return nullopt;
@@ -63,7 +63,7 @@ optional<float> SM72445::getOutputVoltage(void) {
 	return vOutReal;
 }
 
-optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) {
+optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) const {
 	const auto adcResult = getAnalogueChannelAdcResult(channel);
 
 	if (!adcResult) return nullopt;
@@ -72,7 +72,7 @@ optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) {
 	return voltage;
 }
 
-optional<uint16_t> SM72445::getAnalogueChannelAdcResult(AnalogueChannel channel) {
+optional<uint16_t> SM72445::getAnalogueChannelAdcResult(AnalogueChannel channel) const {
 	auto reg0 = this->i2c->read(this->deviceAddress, MemoryAddress::REG0);
 
 	if (!reg0) return nullopt;
@@ -81,7 +81,7 @@ optional<uint16_t> SM72445::getAnalogueChannelAdcResult(AnalogueChannel channel)
 	return adcResult;
 }
 
-float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) {
+float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const {
 	// ! adcResult is not checked for valid range with respect to resolution here.
 	// Ensure proper masking before calling this function.
 	const float maxAdcResult = (1u << resolution) - 1u;

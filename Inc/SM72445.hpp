@@ -129,28 +129,28 @@ public:
 	 *
 	 * @return optional<float> The input current, if successful.
 	 */
-	optional<float> getInputCurrent(void);
+	optional<float> getInputCurrent(void) const;
 
 	/**
 	 * @brief Get the Input Voltage measured by the SM72445.
 	 *
 	 * @return optional<float> The input voltage, if successful.
 	 */
-	optional<float> getInputVoltage(void);
+	optional<float> getInputVoltage(void) const;
 
 	/**
 	 * @brief Get the Output Current measured by the SM72445.
 	 *
 	 * @return optional<float> The output current, if successful.
 	 */
-	optional<float> getOutputCurrent(void);
+	optional<float> getOutputCurrent(void) const;
 
 	/**
 	 * @brief Get the Output Voltage measured by the SM72445.
 	 *
 	 * @return optional<float> The output voltage, if successful.
 	 */
-	optional<float> getOutputVoltage(void);
+	optional<float> getOutputVoltage(void) const;
 
 	/**
 	 * @brief Get an Analogue Configuration Channel Pin Voltage.
@@ -158,7 +158,7 @@ public:
 	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
 	 * @return optional<float> The pin voltage, if successful.
 	 */
-	optional<float> getAnalogueChannelVoltage(AnalogueChannel channel);
+	optional<float> getAnalogueChannelVoltage(AnalogueChannel channel) const;
 
 private:
 	/**
@@ -167,7 +167,7 @@ private:
 	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
 	 * @return optional<float> The pin voltage, if successful.
 	 */
-	optional<uint16_t> getAnalogueChannelAdcResult(AnalogueChannel channel);
+	optional<uint16_t> getAnalogueChannelAdcResult(AnalogueChannel channel) const;
 
 	/**
 	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference vDDA.
@@ -176,7 +176,7 @@ private:
 	 * @param resolution The resolution (in bits) of the ADC measurement.
 	 * @return float The apparent pin voltage.
 	 */
-	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution);
+	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const;
 
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_Test;
