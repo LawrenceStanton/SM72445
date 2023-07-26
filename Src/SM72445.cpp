@@ -23,44 +23,49 @@ SM72445::SM72445(
 	  vInGain(vInGain), vOutGain(vOutGain), iInGain(iInGain), iOutGain(iOutGain), //
 	  vDDA(vDDA) {}
 
-optional<float> SM72445::getInputCurrent(void) const {
+optional<float> SM72445::getElectricalMeasurement(ElectricalProperty property) const {
 	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!reg1) return nullopt;
 
-	uint16_t iInAdcResult = (reg1.value() >> 0) & 0x3FFu;
-	float	 iInReal	  = convertAdcResultToPinVoltage(iInAdcResult, 10u) / this->iInGain;
-	return iInReal;
+	uint16_t adcResult = (reg1.value() >> (static_cast<uint8_t>(property) * 10u)) & 0x3FFu;
+
+	float gain = 0.0f;
+	switch (property) {
+	case ElectricalProperty::CURRENT_IN:
+		gain = this->iInGain;
+		break;
+	case ElectricalProperty::VOLTAGE_IN:
+		gain = this->vInGain;
+		break;
+	case ElectricalProperty::CURRENT_OUT:
+		gain = this->iOutGain;
+		break;
+	case ElectricalProperty::VOLTAGE_OUT:
+		gain = this->vOutGain;
+		break;
+	default:
+		return nullopt;
+	}
+
+	float measurement = convertAdcResultToPinVoltage(adcResult, 10u) / gain;
+	return measurement;
+}
+
+optional<float> SM72445::getInputCurrent(void) const {
+	return getElectricalMeasurement(ElectricalProperty::CURRENT_IN);
 }
 
 optional<float> SM72445::getInputVoltage(void) const {
-	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
-
-	if (!reg1) return nullopt;
-
-	uint16_t vInAdcResult = (reg1.value() >> 10) & 0x3FFu;
-	float	 vInReal	  = convertAdcResultToPinVoltage(vInAdcResult, 10u) / this->vInGain;
-	return vInReal;
+	return getElectricalMeasurement(ElectricalProperty::VOLTAGE_IN);
 }
 
 optional<float> SM72445::getOutputCurrent(void) const {
-	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
-
-	if (!reg1) return nullopt;
-
-	uint16_t iOutAdcResult = (reg1.value() >> 20u) & 0x3FFu;
-	float	 iOutReal	   = convertAdcResultToPinVoltage(iOutAdcResult, 10u) / this->iOutGain;
-	return iOutReal;
+	return getElectricalMeasurement(ElectricalProperty::CURRENT_OUT);
 }
 
 optional<float> SM72445::getOutputVoltage(void) const {
-	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
-
-	if (!reg1) return nullopt;
-
-	uint16_t vOutAdcResult = (reg1.value() >> 30u) & 0x3FFu;
-	float	 vOutReal	   = convertAdcResultToPinVoltage(vOutAdcResult, 10u) / this->vOutGain;
-	return vOutReal;
+	return getElectricalMeasurement(ElectricalProperty::VOLTAGE_OUT);
 }
 
 optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) const {

@@ -100,6 +100,16 @@ public:
 		CH6 = 0x6u,
 	};
 
+	/**
+	 * @brief Generic enumerable for core electrical properties.
+	 */
+	enum class ElectricalProperty : uint8_t {
+		CURRENT_IN	= 0u,
+		VOLTAGE_IN	= 1u,
+		CURRENT_OUT = 2u,
+		VOLTAGE_OUT = 3u,
+	};
+
 protected:
 	I2C *const	  i2c;
 	DeviceAddress deviceAddress;
@@ -161,6 +171,8 @@ public:
 	optional<float> getAnalogueChannelVoltage(AnalogueChannel channel) const;
 
 private:
+	optional<float> getElectricalMeasurement(ElectricalProperty property) const;
+
 	/**
 	 * @brief Get an Analogue Configuration Channel Pin Voltage.
 	 *
@@ -182,6 +194,9 @@ private:
 	friend class SM72445_Test;
 
 	FRIEND_TEST(SM72445_Test, constructorAssignsArguments);
+
+	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails);
+	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid);
 
 	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultNormallyReturnsValue);
 	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultReturnsNulloptIfI2CReadFails);

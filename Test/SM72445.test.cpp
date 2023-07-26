@@ -60,6 +60,21 @@ TEST_F(SM72445_Test, constructorAssignsArguments) {
 	ASSERT_EQ(sm72445.vDDA, 5.0f);
 }
 
+// ? getElectricalMeasurements() Normal Tests exercised by public API test cases.
+
+TEST_F(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::CURRENT_IN), nullopt);
+	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::VOLTAGE_IN), nullopt);
+	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::CURRENT_OUT), nullopt);
+	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::VOLTAGE_OUT), nullopt);
+}
+
+TEST_F(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid) {
+	ON_CALL(i2c, read).WillByDefault(Return(0x0000'0000'0000'0000ul));
+	EXPECT_EQ(sm72445.getElectricalMeasurement(static_cast<SM72445::ElectricalProperty>(0xFF)), nullopt);
+}
+
 TEST_F(SM72445_Test, getInputCurrentNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1)))
 		.WillOnce(Return(~(~Register(0xFFFF'FFFF'FFFF'FC00ul) << 0)))
