@@ -112,13 +112,32 @@ optional<float> SM72445::getOutputVoltage(void) const {
 	);
 }
 
+optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
+	auto adcResults = getAnalogueChannelAdcResults();
+
+	if (!adcResults) return nullopt;
+
+	array<float, 4> voltages;
+	const array		properties = {
+		AnalogueChannel::CH0,
+		AnalogueChannel::CH2,
+		AnalogueChannel::CH4,
+		AnalogueChannel::CH6,
+	};
+
+	for (auto property : properties) {
+		const uint16_t adcResult = adcResults.value()[static_cast<uint8_t>(property)];
+
+		const float voltage = convertAdcResultToPinVoltage(adcResult, 10u);
+
+		voltages[static_cast<uint8_t>(property)] = voltage;
+	}
+
+	return voltages;
+}
+
 optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) const {
-	const auto adcResult = getAnalogueChannelAdcResult(channel);
-
-	if (!adcResult) return nullopt;
-
-	const float voltage = convertAdcResultToPinVoltage(adcResult.value(), 10u);
-	return voltage;
+	return getOptionalIndexOrNullopt(getAnalogueChannelVoltages(), static_cast<uint8_t>(channel));
 }
 
 optional<array<float, 4>> SM72445::getOffsets(void) const {
@@ -130,7 +149,8 @@ optional<array<float, 4>> SM72445::getOffsets(void) const {
 		ElectricalProperty::CURRENT_IN,
 		ElectricalProperty::VOLTAGE_IN,
 		ElectricalProperty::CURRENT_OUT,
-		ElectricalProperty::VOLTAGE_OUT};
+		ElectricalProperty::VOLTAGE_OUT,
+	};
 
 	array<float, 4> offsets;
 
@@ -171,13 +191,25 @@ optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {
 	return thresholdCurrent;
 }
 
-optional<uint16_t> SM72445::getAnalogueChannelAdcResult(AnalogueChannel channel) const {
+optional<array<uint16_t, 4>> SM72445::getAnalogueChannelAdcResults(void) const {
 	auto reg0 = this->i2c->read(this->deviceAddress, MemoryAddress::REG0);
 
 	if (!reg0) return nullopt;
 
-	uint16_t adcResult = (reg0.value() >> (static_cast<uint8_t>(channel) >> 1) * 10u) & 0x3FFu;
-	return adcResult;
+	array<uint16_t, 4> adcResults;
+	const array		   channels = {
+		   AnalogueChannel::CH0,
+		   AnalogueChannel::CH2,
+		   AnalogueChannel::CH4,
+		   AnalogueChannel::CH6,
+	   };
+
+	for (auto channel : channels) {
+		const uint16_t adcResult				  = (reg0.value() >> static_cast<uint8_t>(channel) * 10u) & 0x3FFu;
+		adcResults[static_cast<uint8_t>(channel)] = adcResult;
+	}
+
+	return adcResults;
 }
 
 float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const {

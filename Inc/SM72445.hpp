@@ -97,9 +97,9 @@ public:
 	 */
 	enum class AnalogueChannel : uint8_t {
 		CH0 = 0x0u,
-		CH2 = 0x2u,
-		CH4 = 0x4u,
-		CH6 = 0x6u,
+		CH2 = 0x1u,
+		CH4 = 0x2u,
+		CH6 = 0x3u,
 	};
 
 	/**
@@ -185,6 +185,13 @@ public:
 	optional<float> getOutputVoltage(void) const;
 
 	/**
+	 * @brief Get the Analogue Configuration Channel Pin Voltages.
+	 *
+	 * @return optional<float> The pin voltages, indexed by AnalogueChannel, if successful.
+	 */
+	optional<array<float, 4>> getAnalogueChannelVoltages(void) const;
+
+	/**
 	 * @brief Get an Analogue Configuration Channel Pin Voltage.
 	 *
 	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
@@ -238,7 +245,7 @@ private:
 	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
 	 * @return optional<float> The pin voltage, if successful.
 	 */
-	optional<uint16_t> getAnalogueChannelAdcResult(AnalogueChannel channel) const;
+	optional<array<uint16_t, 4>> getAnalogueChannelAdcResults(void) const;
 
 	/**
 	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference vDDA.
@@ -263,8 +270,8 @@ private:
 	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails);
 	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid);
 
-	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultNormallyReturnsValue);
-	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultReturnsNulloptIfI2CReadFails);
+	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsNormallyReturnsValue);
+	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsReturnsNulloptIfI2CReadFails);
 
 	FRIEND_TEST(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue);
 #endif
