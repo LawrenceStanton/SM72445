@@ -27,7 +27,6 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltagesNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG0))).WillOnce(Return(0x0123'4567'89AB'CDEFull));
 
 	auto voltages = sm72445.getAnalogueChannelVoltages().value();
-	// Random values, just to check the conversion doesn't deviate in future.
 	EXPECT_FLOAT_EQ(voltages[static_cast<uint8_t>(AnalogueChannel::CH0)], 2.4193548f);
 	EXPECT_FLOAT_EQ(voltages[static_cast<uint8_t>(AnalogueChannel::CH2)], 3.6901271f);
 	EXPECT_FLOAT_EQ(voltages[static_cast<uint8_t>(AnalogueChannel::CH4)], 0.7526882f);

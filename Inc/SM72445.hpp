@@ -221,15 +221,6 @@ public:
 	 */
 	optional<float> getOffset(ElectricalProperty property) const;
 
-	// /**
-	//  * @brief Set the ADC measurement offset for a given electrical property.
-	//  *
-	//  * @param property
-	//  * @param offset
-	//  * @return optional<Register>
-	//  */
-	// optional<Register> setOffset(ElectricalProperty property, float offset) const;
-
 	/**
 	 * @brief Get all set thresholds for MPPT power conversion.
 	 *
@@ -246,6 +237,8 @@ public:
 	optional<float> getCurrentThreshold(CurrentThreshold threshold) const;
 
 private:
+	optional<array<uint16_t, 4>> getElectricalMeasurementsAdcResults(void) const;
+
 	/**
 	 * @brief Get an Analogue Configuration Channel Pin Voltage.
 	 *
@@ -253,6 +246,13 @@ private:
 	 * @return optional<float> The pin voltage, if successful.
 	 */
 	optional<array<uint16_t, 4>> getAnalogueChannelAdcResults(void) const;
+
+	/**
+	 * @brief Get the ADC Offset Register Values from the SM72445.
+	 *
+	 * @return optional<array<uint16_t, 4>> The register values, indexed by ElectricalProperty, if successful.
+	 */
+	optional<array<uint8_t, 4>> getOffsetRegisterValues(void) const;
 
 	/**
 	 * @brief Get the register binary values for the current MPPT thresholds.
@@ -281,11 +281,14 @@ private:
 	FRIEND_TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue);
 	FRIEND_TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid);
 
-	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails);
-	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid);
-
 	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsNormallyReturnsValue);
 	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsReturnsNulloptIfI2CReadFails);
+
+	FRIEND_TEST(SM72445_Test, getElectricalMeasurementAdcResultsNormallyReturnsValue);
+	FRIEND_TEST(SM72445_Test, getElectricalMeasurementAdcResultsReturnsNulloptIfI2CReadFails);
+
+	FRIEND_TEST(SM72445_Test, getOffsetRegisterValuesNormallyReturnsValue);
+	FRIEND_TEST(SM72445_Test, getOffsetRegisterValuesReturnsNulloptIfI2CReadFails);
 
 	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesNormallyReturnsValue);
 	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesReturnsNulloptIfI2CReadFails);

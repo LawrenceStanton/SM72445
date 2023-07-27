@@ -8,7 +8,29 @@
 
 #include "SM72445.test.hpp"
 
-// ? getElectricalMeasurements() Normal Tests exercised by public API test cases.
+TEST_F(SM72445_Test, getElectricalMeasurementAdcResultsNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
+
+	auto adcResults = sm72445.getElectricalMeasurementsAdcResults().value();
+	EXPECT_EQ(adcResults[static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)], 0x01EFu);
+	EXPECT_EQ(adcResults[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)], 0x02F3u);
+	EXPECT_EQ(adcResults[static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)], 0x009Au);
+	EXPECT_EQ(adcResults[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)], 0x019Eu);
+}
+
+TEST_F(SM72445_Test, getElectricalMeasurementAdcResultsReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getElectricalMeasurementsAdcResults(), nullopt);
+}
+
+TEST_F(SM72445_Test, getElectricalMeasurementNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
+	auto measurements = sm72445.getElectricalMeasurements().value();
+	EXPECT_FLOAT_EQ(measurements[static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)], 4.838709f);
+	EXPECT_FLOAT_EQ(measurements[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)], 7.380254f);
+	EXPECT_FLOAT_EQ(measurements[static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)], 1.505376f);
+	EXPECT_FLOAT_EQ(measurements[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)], 4.046921f);
+}
 
 TEST_F(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails) {
 	disableI2C();

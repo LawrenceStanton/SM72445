@@ -8,6 +8,21 @@
 
 #include "SM72445.test.hpp"
 
+TEST_F(SM72445_Test, getOffsetRegisterValuesNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
+
+	auto registerValues = sm72445.getOffsetRegisterValues().value();
+	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)], 0xEFu);
+	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)], 0xCDu);
+	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)], 0xABu);
+	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)], 0x89u);
+}
+
+TEST_F(SM72445_Test, getOffsetRegisterValuesReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getOffsetRegisterValues(), nullopt);
+}
+
 TEST_F(SM72445_Test, getOffsetsNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
 	auto offsets = sm72445.getOffsets().value();
@@ -72,8 +87,6 @@ TEST_F(SM72445_Test, getOutputVoltageOffsetNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 6.6666666f);
 	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 3.3333333f);
 }
-
-// ? getOffset() Normal Tests exercised by above individual Electrical Property test cases.
 
 TEST_F(SM72445_Test, getOffsetReturnsNulloptIfI2CReadFails) {
 	disableI2C();

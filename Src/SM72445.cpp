@@ -27,9 +27,9 @@ SM72445::SM72445(
 	  vDDA(vDDA) {}
 
 optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
-	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
+	auto regValues = getElectricalMeasurementsAdcResults();
 
-	if (!reg1) return nullopt;
+	if (!regValues) return nullopt;
 
 	const array properties = {
 		ElectricalProperty::CURRENT_IN,
@@ -39,7 +39,7 @@ optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
 	array<float, 4> measurements;
 
 	for (auto property : properties) {
-		const uint16_t adcResult = (reg1.value() >> (static_cast<uint8_t>(property) * 10u)) & 0x3FFu;
+		auto adcResult = regValues.value()[static_cast<uint8_t>(property)];
 
 		const float gain = getGain(property);
 		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
@@ -109,9 +109,9 @@ optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) cons
 }
 
 optional<array<float, 4>> SM72445::getOffsets(void) const {
-	const auto reg4 = this->i2c->read(this->deviceAddress, MemoryAddress::REG4);
+	auto regValues = getOffsetRegisterValues();
 
-	if (!reg4) return nullopt;
+	if (!regValues) return nullopt;
 
 	const array properties = {
 		ElectricalProperty::CURRENT_IN,
@@ -123,12 +123,13 @@ optional<array<float, 4>> SM72445::getOffsets(void) const {
 	array<float, 4> offsets;
 
 	for (auto property : properties) {
-		const uint16_t adcOffset = (reg4.value() >> (static_cast<uint8_t>(property) * 8u)) & 0xFFu;
+		const uint16_t adcOffset = regValues.value()[static_cast<uint8_t>(property)];
 
 		const float gain = getGain(property);
 		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
 
-		const float offset						= convertAdcResultToPinVoltage(adcOffset, 8u) / gain;
+		const float offset = convertAdcResultToPinVoltage(adcOffset, 8u) / gain;
+
 		offsets[static_cast<uint8_t>(property)] = offset;
 	}
 
@@ -174,6 +175,28 @@ optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {
 	return getOptionalIndexOrNullopt(getCurrentThresholds(), static_cast<uint8_t>(threshold));
 }
 
+optional<array<uint16_t, 4>> SM72445::getElectricalMeasurementsAdcResults(void) const {
+	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
+
+	if (!reg1) return nullopt;
+
+	array<uint16_t, 4> adcResults;
+	const array		   properties = {
+		   ElectricalProperty::CURRENT_IN,
+		   ElectricalProperty::VOLTAGE_IN,
+		   ElectricalProperty::CURRENT_OUT,
+		   ElectricalProperty::VOLTAGE_OUT,
+	   };
+
+	for (auto property : properties) {
+		const uint16_t adcResult = (reg1.value() >> static_cast<uint8_t>(property) * 10u) & 0x3FFu;
+
+		adcResults[static_cast<uint8_t>(property)] = adcResult;
+	}
+
+	return adcResults;
+}
+
 optional<array<uint16_t, 4>> SM72445::getAnalogueChannelAdcResults(void) const {
 	auto reg0 = this->i2c->read(this->deviceAddress, MemoryAddress::REG0);
 
@@ -193,6 +216,27 @@ optional<array<uint16_t, 4>> SM72445::getAnalogueChannelAdcResults(void) const {
 	}
 
 	return adcResults;
+}
+
+optional<array<uint8_t, 4>> SM72445::getOffsetRegisterValues(void) const {
+	auto reg4 = this->i2c->read(this->deviceAddress, MemoryAddress::REG4);
+
+	if (!reg4) return nullopt;
+
+	array<uint8_t, 4> offsetRegisterValues;
+	const array		  properties = {
+		  ElectricalProperty::CURRENT_IN,
+		  ElectricalProperty::VOLTAGE_IN,
+		  ElectricalProperty::CURRENT_OUT,
+		  ElectricalProperty::VOLTAGE_OUT,
+	  };
+
+	for (auto property : properties) {
+		const uint16_t offsetRegisterValue = (reg4.value() >> static_cast<uint8_t>(property) * 8u) & 0xFFu;
+		offsetRegisterValues[static_cast<uint8_t>(property)] = offsetRegisterValue;
+	}
+
+	return offsetRegisterValues;
 }
 
 optional<array<uint16_t, 4>> SM72445::getThresholdRegisterValues(void) const {
