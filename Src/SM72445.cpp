@@ -10,33 +10,8 @@
 
 using std::nullopt;
 
-float SM72445::getGain(SM72445::ElectricalProperty property) const {
-	switch (property) {
-	case ElectricalProperty::CURRENT_IN:
-		return this->iInGain;
-	case ElectricalProperty::VOLTAGE_IN:
-		return this->vInGain;
-	case ElectricalProperty::CURRENT_OUT:
-		return this->iOutGain;
-	case ElectricalProperty::VOLTAGE_OUT:
-		return this->vOutGain;
-	default:
-		return 0.0;
-	}
-}
-
-float SM72445::getGain(SM72445::CurrentThreshold threshold) const {
-	switch (threshold) {
-	case CurrentThreshold::CURRENT_OUT_LOW:
-	case CurrentThreshold::CURRENT_OUT_HIGH:
-		return this->iOutGain;
-	case CurrentThreshold::CURRENT_IN_LOW:
-	case CurrentThreshold::CURRENT_IN_HIGH:
-		return this->iInGain;
-	default:
-		return 0.0;
-	}
-}
+static inline optional<float>
+getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index);
 
 SM72445::SM72445(
 	I2C			 *i2c,
@@ -75,13 +50,6 @@ optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
 	}
 
 	return measurements;
-}
-
-static inline optional<float>
-getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index) {
-	if (!measurements) return nullopt;
-	if (index >= measurements.value().size()) return nullopt;
-	return measurements.value()[index];
 }
 
 optional<float> SM72445::getInputCurrent(void) const {
@@ -176,19 +144,34 @@ optional<float> SM72445::getOffset(ElectricalProperty property) const {
 	}
 }
 
+optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
+	const auto thresholdRegValues = getThresholdRegisterValues();
+
+	if (!thresholdRegValues) return nullopt;
+
+	array<float, 4> thresholds;
+	const array		properties = {
+		CurrentThreshold::CURRENT_OUT_LOW,
+		CurrentThreshold::CURRENT_OUT_HIGH,
+		CurrentThreshold::CURRENT_IN_LOW,
+		CurrentThreshold::CURRENT_IN_HIGH,
+	};
+
+	for (auto property : properties) {
+		const uint16_t adcThreshold = thresholdRegValues.value()[static_cast<uint8_t>(property)];
+
+		const float gain = getGain(property);
+		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+
+		const float threshold = convertAdcResultToPinVoltage(adcThreshold, 10u) / gain;
+
+		thresholds[static_cast<uint8_t>(property)] = threshold;
+	}
+	return thresholds;
+}
+
 optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {
-	auto reg5 = this->i2c->read(this->deviceAddress, MemoryAddress::REG5);
-
-	if (!reg5) return nullopt;
-
-	const uint16_t adcThreshold = (reg5.value() >> (static_cast<uint8_t>(threshold) * 10u)) & 0x3FFu;
-
-	const float gain = getGain(threshold);
-
-	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
-
-	const float thresholdCurrent = convertAdcResultToPinVoltage(adcThreshold, 10u) / gain;
-	return thresholdCurrent;
+	return getOptionalIndexOrNullopt(getCurrentThresholds(), static_cast<uint8_t>(threshold));
 }
 
 optional<array<uint16_t, 4>> SM72445::getAnalogueChannelAdcResults(void) const {
@@ -212,10 +195,66 @@ optional<array<uint16_t, 4>> SM72445::getAnalogueChannelAdcResults(void) const {
 	return adcResults;
 }
 
+optional<array<uint16_t, 4>> SM72445::getThresholdRegisterValues(void) const {
+	auto reg5 = this->i2c->read(this->deviceAddress, MemoryAddress::REG5);
+
+	if (!reg5) return nullopt;
+
+	array<uint16_t, 4> thresholdRegisterValues;
+	const array		   thresholds = {
+		   CurrentThreshold::CURRENT_OUT_LOW,
+		   CurrentThreshold::CURRENT_OUT_HIGH,
+		   CurrentThreshold::CURRENT_IN_LOW,
+		   CurrentThreshold::CURRENT_IN_HIGH,
+	   };
+
+	for (auto threshold : thresholds) {
+		const uint16_t thresholdRegisterValue = (reg5.value() >> static_cast<uint8_t>(threshold) * 10u) & 0x3FFu;
+		thresholdRegisterValues[static_cast<uint8_t>(threshold)] = thresholdRegisterValue;
+	}
+
+	return thresholdRegisterValues;
+}
+
 float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const {
 	// ! adcResult is not checked for valid range with respect to resolution here.
 	// Ensure proper masking before calling this function.
 	const float maxAdcResult = (1u << resolution) - 1u;
 	float		voltage		 = adcResult / maxAdcResult * this->vDDA;
 	return voltage;
+}
+
+static inline optional<float>
+getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index) {
+	if (!measurements) return nullopt;
+	if (index >= measurements.value().size()) return nullopt;
+	return measurements.value()[index];
+}
+
+float SM72445::getGain(SM72445::ElectricalProperty property) const {
+	switch (property) {
+	case ElectricalProperty::CURRENT_IN:
+		return this->iInGain;
+	case ElectricalProperty::VOLTAGE_IN:
+		return this->vInGain;
+	case ElectricalProperty::CURRENT_OUT:
+		return this->iOutGain;
+	case ElectricalProperty::VOLTAGE_OUT:
+		return this->vOutGain;
+	default:
+		return 0.0;
+	}
+}
+
+float SM72445::getGain(SM72445::CurrentThreshold threshold) const {
+	switch (threshold) {
+	case CurrentThreshold::CURRENT_OUT_LOW:
+	case CurrentThreshold::CURRENT_OUT_HIGH:
+		return this->iOutGain;
+	case CurrentThreshold::CURRENT_IN_LOW:
+	case CurrentThreshold::CURRENT_IN_HIGH:
+		return this->iInGain;
+	default:
+		return 0.0;
+	}
 }

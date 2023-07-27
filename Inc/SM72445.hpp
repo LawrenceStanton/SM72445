@@ -231,7 +231,14 @@ public:
 	// optional<Register> setOffset(ElectricalProperty property, float offset) const;
 
 	/**
-	 * @brief Get the Current Threshold set for starting and stopping MPPT.
+	 * @brief Get all set thresholds for MPPT power conversion.
+	 *
+	 * @return optional<array<float, 4>> The thresholds, indexed by CurrentThreshold, if successful.
+	 */
+	optional<array<float, 4>> getCurrentThresholds(void) const;
+
+	/**
+	 * @brief Get the set thresholds for MPPT power conversion.
 	 *
 	 * @param threshold The threshold to get the value for.
 	 * @return optional<float> The threshold value, in Amps, if successful.
@@ -246,6 +253,13 @@ private:
 	 * @return optional<float> The pin voltage, if successful.
 	 */
 	optional<array<uint16_t, 4>> getAnalogueChannelAdcResults(void) const;
+
+	/**
+	 * @brief Get the register binary values for the current MPPT thresholds.
+	 *
+	 * @return optional<array<uint16_t, 4>> The register values, indexed by CurrentThreshold, if successful.
+	 */
+	optional<array<uint16_t, 4>> getThresholdRegisterValues(void) const;
 
 	/**
 	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference vDDA.
@@ -272,6 +286,9 @@ private:
 
 	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsNormallyReturnsValue);
 	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsReturnsNulloptIfI2CReadFails);
+
+	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesNormallyReturnsValue);
+	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesReturnsNulloptIfI2CReadFails);
 
 	FRIEND_TEST(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue);
 #endif
