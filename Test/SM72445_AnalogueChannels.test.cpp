@@ -12,7 +12,6 @@ TEST_F(SM72445_Test, getAnalogueChannelAdcResultsNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG0))).WillOnce(Return(0x0123'4567'89AB'CDEFull));
 
 	auto adcResults = sm72445.getAnalogueChannelAdcResults().value();
-
 	EXPECT_EQ(adcResults[static_cast<uint8_t>(AnalogueChannel::CH0)], 0x01EFu);
 	EXPECT_EQ(adcResults[static_cast<uint8_t>(AnalogueChannel::CH2)], 0x02F3u);
 	EXPECT_EQ(adcResults[static_cast<uint8_t>(AnalogueChannel::CH4)], 0x009Au);
@@ -24,26 +23,11 @@ TEST_F(SM72445_Test, getAnalogueChannelAdcResultsReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getAnalogueChannelAdcResults(), nullopt);
 }
 
-TEST_F(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue) {
-	// ? This test only considers the specific resolution cases of 8 and 10 bits, the only ones used by the SM72445.
-
-	// 8-bit Resolution
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0000u, 8), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x00FFu, 8), 5.0f);
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0055u, 8), 1.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x00AAu, 8), 3.3333333f);
-
-	// 10-bit Resolution
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0000u, 10), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x03FFu, 10), 5.0f);
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0155u, 10), 1.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x02AAu, 10), 3.3333333f);
-}
-
 TEST_F(SM72445_Test, getAnalogueChannelVoltagesNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG0))).WillOnce(Return(0x0123'4567'89AB'CDEFull));
 
 	auto voltages = sm72445.getAnalogueChannelVoltages().value();
+	// Random values, just to check the conversion doesn't deviate in future.
 	EXPECT_FLOAT_EQ(voltages[static_cast<uint8_t>(AnalogueChannel::CH0)], 2.4193548f);
 	EXPECT_FLOAT_EQ(voltages[static_cast<uint8_t>(AnalogueChannel::CH2)], 3.6901271f);
 	EXPECT_FLOAT_EQ(voltages[static_cast<uint8_t>(AnalogueChannel::CH4)], 0.7526882f);
