@@ -110,6 +110,13 @@ public:
 		VOLTAGE_OUT = 3u,
 	};
 
+	enum class CurrentThreshold : uint8_t {
+		CURRENT_OUT_LOW	 = 0x0u,
+		CURRENT_OUT_HIGH = 0x1u,
+		CURRENT_IN_LOW	 = 0x2u,
+		CURRENT_IN_HIGH	 = 0x3u,
+	};
+
 protected:
 	I2C *const	  i2c;
 	DeviceAddress deviceAddress;
@@ -185,6 +192,14 @@ public:
 	 * @ref SM72445 Datasheet, Page 12, reg4.
 	 */
 	optional<float> getOffset(ElectricalProperty property) const;
+
+	/**
+	 * @brief Get the Current Threshold set for starting and stopping MPPT.
+	 *
+	 * @param threshold The threshold to get the value for.
+	 * @return optional<float> The threshold value, in Amps, if successful.
+	 */
+	optional<float> getCurrentThreshold(CurrentThreshold threshold) const;
 
 private:
 	/**

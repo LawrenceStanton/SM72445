@@ -91,6 +91,26 @@ optional<float> SM72445::getOffset(ElectricalProperty property) const {
 	return offset;
 }
 
+optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {
+	auto reg5 = this->i2c->read(this->deviceAddress, MemoryAddress::REG5);
+
+	if (!reg5) return nullopt;
+
+	const uint16_t adcThreshold = (reg5.value() >> (static_cast<uint8_t>(threshold) * 10u)) & 0x3FFu;
+
+	const float gain =
+		(threshold == CurrentThreshold::CURRENT_IN_HIGH || threshold == CurrentThreshold::CURRENT_IN_LOW)
+			? getGain(ElectricalProperty::CURRENT_IN)
+		: (threshold == CurrentThreshold::CURRENT_OUT_HIGH || threshold == CurrentThreshold::CURRENT_OUT_LOW)
+			? getGain(ElectricalProperty::CURRENT_OUT)
+			: 0.0f;
+
+	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+
+	const float thresholdCurrent = convertAdcResultToPinVoltage(adcThreshold, 10u) / gain;
+	return thresholdCurrent;
+}
+
 optional<uint16_t> SM72445::getAnalogueChannelAdcResult(AnalogueChannel channel) const {
 	auto reg0 = this->i2c->read(this->deviceAddress, MemoryAddress::REG0);
 
