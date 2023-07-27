@@ -55,9 +55,11 @@ if(NOT CMAKE_CROSSCOMPILING)
 
 	# GTest Test Executable
 	set(TEST_EXECUTABLE ${LIBRARY}_Test)
+
+	file(GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Test/*.cpp)
 	
 	add_executable(${TEST_EXECUTABLE}
-		Test/SM72445.test.cpp
+		${TEST_SOURCES}
 	)
 
 	target_compile_options(${TEST_EXECUTABLE} PRIVATE
@@ -66,6 +68,7 @@ if(NOT CMAKE_CROSSCOMPILING)
 
 	target_include_directories(${TEST_EXECUTABLE} PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}/Inc
+		${CMAKE_CURRENT_SOURCE_DIR}/Test
 	)
 
 	target_link_libraries(${TEST_EXECUTABLE} PRIVATE
