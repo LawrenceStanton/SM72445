@@ -10,7 +10,7 @@
 
 using std::nullopt;
 
-float SM72445::getGain(SM72445::ElectricalProperty property) const {
+constexpr float SM72445::getGain(SM72445::ElectricalProperty property) const {
 	switch (property) {
 	case ElectricalProperty::CURRENT_IN:
 		return this->iInGain;
@@ -77,18 +77,39 @@ optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) cons
 	return voltage;
 }
 
-optional<float> SM72445::getOffset(ElectricalProperty property) const {
-	auto reg4 = this->i2c->read(this->deviceAddress, MemoryAddress::REG4);
+optional<array<float, 4>> SM72445::getOffsets(void) const {
+	const auto reg4 = this->i2c->read(this->deviceAddress, MemoryAddress::REG4);
 
 	if (!reg4) return nullopt;
 
-	const uint16_t adcOffset = (reg4.value() >> (static_cast<uint8_t>(property) * 8u)) & 0xFFu;
+	const array properties = {
+		ElectricalProperty::CURRENT_IN,
+		ElectricalProperty::VOLTAGE_IN,
+		ElectricalProperty::CURRENT_OUT,
+		ElectricalProperty::VOLTAGE_OUT};
 
-	const float gain = getGain(property);
-	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+	array<float, 4> offsets;
 
-	const float offset = convertAdcResultToPinVoltage(adcOffset, 8u) / gain;
-	return offset;
+	for (auto property : properties) {
+		const uint16_t adcOffset = (reg4.value() >> (static_cast<uint8_t>(property) * 8u)) & 0xFFu;
+
+		const float gain = getGain(property);
+		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+
+		const float offset						= convertAdcResultToPinVoltage(adcOffset, 8u) / gain;
+		offsets[static_cast<uint8_t>(property)] = offset;
+	}
+
+	return offsets;
+}
+
+optional<float> SM72445::getOffset(ElectricalProperty property) const {
+	auto offsets = getOffsets();
+	if (!offsets) return nullopt;
+	else {
+		if (static_cast<uint8_t>(property) >= offsets.value().size()) return nullopt;
+		else return offsets.value()[static_cast<uint8_t>(property)];
+	}
 }
 
 optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {

@@ -8,9 +8,11 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 
+using std::array;
 using std::optional;
 
 class SM72445 {
@@ -183,6 +185,16 @@ public:
 	optional<float> getAnalogueChannelVoltage(AnalogueChannel channel) const;
 
 	/**
+	 * @brief Get the ADC measurement offsets for all electrical properties.
+	 *
+	 * @return optional<array<float, 4>> The offsets indexed by ElectricalProperty, if successful.
+	 * @note Voltage measurements are returned in Volts.
+	 * @note Current measurements are returned in Amps.
+	 * @ref SM72445 Datasheet, Page 12, reg4.
+	 */
+	optional<array<float, 4>> getOffsets(void) const;
+
+	/**
 	 * @brief Get the ADC measurement offset for a given electrical property.
 	 *
 	 * @param property The electrical property to get the offset for.
@@ -192,6 +204,15 @@ public:
 	 * @ref SM72445 Datasheet, Page 12, reg4.
 	 */
 	optional<float> getOffset(ElectricalProperty property) const;
+
+	// /**
+	//  * @brief Set the ADC measurement offset for a given electrical property.
+	//  *
+	//  * @param property
+	//  * @param offset
+	//  * @return optional<Register>
+	//  */
+	// optional<Register> setOffset(ElectricalProperty property, float offset) const;
 
 	/**
 	 * @brief Get the Current Threshold set for starting and stopping MPPT.
@@ -229,7 +250,7 @@ private:
 	 */
 	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const;
 
-	float getGain(SM72445::ElectricalProperty property) const;
+	constexpr float getGain(SM72445::ElectricalProperty property) const;
 
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_Test;

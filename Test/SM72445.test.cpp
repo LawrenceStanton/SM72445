@@ -194,6 +194,20 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH6), nullopt);
 }
 
+TEST_F(SM72445_Test, getOffsetsNormallyReturnsValue) {
+	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
+	auto offsets = sm72445.getOffsets().value();
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::CURRENT_IN)], 9.372549f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::CURRENT_OUT)], 6.705883f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::VOLTAGE_IN)], 8.039216f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::VOLTAGE_OUT)], 5.372549f);
+}
+
+TEST_F(SM72445_Test, getOffsetsReturnsNulloptIfI2CReadFails) {
+	disableI2C();
+	EXPECT_EQ(sm72445.getOffsets(), nullopt);
+}
+
 TEST_F(SM72445_Test, getInputCurrentOffsetNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
 		.WillOnce(Return(~(~Register(0x00ul) << 0)))
