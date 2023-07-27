@@ -18,8 +18,13 @@ using ::testing::Eq;
 using ::testing::Return;
 using ::testing::ReturnArg;
 
-using MemoryAddress = SM72445::I2C::MemoryAddress;
 using Register		= SM72445::I2C::Register;
+using MemoryAddress = SM72445::I2C::MemoryAddress;
+using DeviceAddress = SM72445::I2C::DeviceAddress;
+
+using AnalogueChannel	 = SM72445::AnalogueChannel;
+using CurrentThreshold	 = SM72445::CurrentThreshold;
+using ElectricalProperty = SM72445::ElectricalProperty;
 
 using std::nullopt;
 
@@ -41,8 +46,8 @@ public:
 
 class SM72445_Test : public ::testing::Test {
 public:
-	MockedI2C i2c;
-	SM72445	  sm72445{&i2c, SM72445::I2C::DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
+	MockedI2C i2c{};
+	SM72445	  sm72445{&i2c, DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
 
 	inline void disableI2C(void) {
 		ON_CALL(i2c, read).WillByDefault(Return(nullopt));
@@ -52,7 +57,7 @@ public:
 
 TEST_F(SM72445_Test, constructorAssignsArguments) {
 	ASSERT_EQ(sm72445.i2c, &i2c);
-	ASSERT_EQ(sm72445.deviceAddress, SM72445::I2C::DeviceAddress::ADDR001);
+	ASSERT_EQ(sm72445.deviceAddress, DeviceAddress::ADDR001);
 	ASSERT_EQ(sm72445.vInGain, .5f);
 	ASSERT_EQ(sm72445.vOutGain, .5f);
 	ASSERT_EQ(sm72445.iInGain, .5f);
@@ -64,15 +69,7 @@ TEST_F(SM72445_Test, constructorAssignsArguments) {
 
 TEST_F(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::CURRENT_IN), nullopt);
-	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::VOLTAGE_IN), nullopt);
-	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::CURRENT_OUT), nullopt);
-	EXPECT_EQ(sm72445.getElectricalMeasurement(SM72445::ElectricalProperty::VOLTAGE_OUT), nullopt);
-}
-
-TEST_F(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid) {
-	ON_CALL(i2c, read).WillByDefault(Return(0x0000'0000'0000'0000ul));
-	EXPECT_EQ(sm72445.getElectricalMeasurement(static_cast<SM72445::ElectricalProperty>(0xFF)), nullopt);
+	EXPECT_EQ(sm72445.getElectricalMeasurements(), nullopt);
 }
 
 TEST_F(SM72445_Test, getInputCurrentNormallyReturnsValue) {
@@ -148,15 +145,15 @@ TEST_F(SM72445_Test, getAnalogueChannelAdcResultNormallyReturnsValue) {
 		.Times(4)
 		.WillRepeatedly(Return(0x0123'4567'89AB'CDEFull));
 
-	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH0).value(), 0x01EFu);
-	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH2).value(), 0x02F3u);
-	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH4).value(), 0x009Au);
-	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH6).value(), 0x019Eu);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(AnalogueChannel::CH0).value(), 0x01EFu);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(AnalogueChannel::CH2).value(), 0x02F3u);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(AnalogueChannel::CH4).value(), 0x009Au);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(AnalogueChannel::CH6).value(), 0x019Eu);
 }
 
 TEST_F(SM72445_Test, getAnalogueChannelAdcResultReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(SM72445::AnalogueChannel::CH0), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelAdcResult(AnalogueChannel::CH0), nullopt);
 }
 
 TEST_F(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue) {
@@ -180,27 +177,27 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltageNormallyReturnsValue) {
 		.Times(4)
 		.WillRepeatedly(Return(0x0123'4567'89AB'CDEFull));
 
-	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH0).value(), 2.4193548f);
-	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH2).value(), 3.6901271f);
-	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH4).value(), 0.7526882f);
-	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH6).value(), 2.0234604f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH0).value(), 2.4193548f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH2).value(), 3.6901271f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH4).value(), 0.7526882f);
+	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH6).value(), 2.0234604f);
 }
 
 TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH0), nullopt);
-	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH2), nullopt);
-	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH4), nullopt);
-	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(SM72445::AnalogueChannel::CH6), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH0), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH2), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH4), nullopt);
+	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH6), nullopt);
 }
 
 TEST_F(SM72445_Test, getOffsetsNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
 	auto offsets = sm72445.getOffsets().value();
-	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::CURRENT_IN)], 9.372549f);
-	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::CURRENT_OUT)], 6.705883f);
-	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::VOLTAGE_IN)], 8.039216f);
-	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(SM72445::ElectricalProperty::VOLTAGE_OUT)], 5.372549f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)], 9.372549f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)], 6.705883f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)], 8.039216f);
+	EXPECT_FLOAT_EQ(offsets[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)], 5.372549f);
 }
 
 TEST_F(SM72445_Test, getOffsetsReturnsNulloptIfI2CReadFails) {
@@ -214,10 +211,10 @@ TEST_F(SM72445_Test, getInputCurrentOffsetNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0xFFul) << 0)))
 		.WillOnce(Return(~(~Register(0xAAul) << 0)))
 		.WillOnce(Return(~(~Register(0x55ul) << 0)));
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN).value(), 3.3333333f);
 }
 
 TEST_F(SM72445_Test, getInputVoltageOffsetNormallyReturnsValue) {
@@ -227,10 +224,10 @@ TEST_F(SM72445_Test, getInputVoltageOffsetNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0xAAul) << 8)))
 		.WillOnce(Return(~(~Register(0x55ul) << 8)));
 
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN).value(), 3.3333333f);
 }
 
 TEST_F(SM72445_Test, getOutputCurrentOffsetNormallyReturnsValue) {
@@ -240,10 +237,10 @@ TEST_F(SM72445_Test, getOutputCurrentOffsetNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0xAAul) << 16)))
 		.WillOnce(Return(~(~Register(0x55ul) << 16)));
 
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_OUT).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_OUT).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_OUT).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_OUT).value(), 3.3333333f);
 }
 
 TEST_F(SM72445_Test, getOutputVoltageOffsetNormallyReturnsValue) {
@@ -253,25 +250,25 @@ TEST_F(SM72445_Test, getOutputVoltageOffsetNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0xAAul) << 24)))
 		.WillOnce(Return(~(~Register(0x55ul) << 24)));
 
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 3.3333333f);
 }
 
 // ? getOffset() Normal Tests exercised by above individual Electrical Property test cases.
 
 TEST_F(SM72445_Test, getOffsetReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_IN), nullopt);
-	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_IN), nullopt);
-	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::CURRENT_OUT), nullopt);
-	EXPECT_EQ(sm72445.getOffset(SM72445::ElectricalProperty::VOLTAGE_OUT), nullopt);
+	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN), nullopt);
+	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN), nullopt);
+	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_OUT), nullopt);
+	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT), nullopt);
 }
 
 TEST_F(SM72445_Test, getOffsetReturnsNulloptIfGivenPropertyInvalid) {
 	ON_CALL(i2c, read).WillByDefault(Return(0x0ul));
-	EXPECT_EQ(sm72445.getOffset(static_cast<SM72445::ElectricalProperty>(0xFFu)), nullopt);
+	EXPECT_EQ(sm72445.getOffset(static_cast<ElectricalProperty>(0xFFu)), nullopt);
 }
 
 TEST_F(SM72445_Test, getOutputLowCurrentThresholdNormallyReturnsValue) {
@@ -281,10 +278,10 @@ TEST_F(SM72445_Test, getOutputLowCurrentThresholdNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0x2AAul) << 0)))
 		.WillOnce(Return(~(~Register(0x155ul) << 0)));
 
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_LOW).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_LOW).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_LOW).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_LOW).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW).value(), 3.3333333f);
 }
 
 TEST_F(SM72445_Test, getOutputHighCurrentThresholdNormallyReturnsValue) {
@@ -294,10 +291,10 @@ TEST_F(SM72445_Test, getOutputHighCurrentThresholdNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0x2AAul) << 10)))
 		.WillOnce(Return(~(~Register(0x155ul) << 10)));
 
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_HIGH).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_HIGH).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_HIGH).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_HIGH).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_HIGH).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_HIGH).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_HIGH).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_HIGH).value(), 3.3333333f);
 }
 
 TEST_F(SM72445_Test, getInputLowCurrentThresholdNormallyReturnsValue) {
@@ -307,10 +304,10 @@ TEST_F(SM72445_Test, getInputLowCurrentThresholdNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0x2AAul) << 20)))
 		.WillOnce(Return(~(~Register(0x155ul) << 20)));
 
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_LOW).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_LOW).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_LOW).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_LOW).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW).value(), 3.3333333f);
 }
 
 TEST_F(SM72445_Test, getInputHighCurrentThresholdNormallyReturnsValue) {
@@ -320,23 +317,44 @@ TEST_F(SM72445_Test, getInputHighCurrentThresholdNormallyReturnsValue) {
 		.WillOnce(Return(~(~Register(0x2AAul) << 30)))
 		.WillOnce(Return(~(~Register(0x155ul) << 30)));
 
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_HIGH).value(), 0.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_HIGH).value(), 10.0f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_HIGH).value(), 6.6666666f);
-	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_HIGH).value(), 3.3333333f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH).value(), 0.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH).value(), 10.0f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH).value(), 6.6666666f);
+	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH).value(), 3.3333333f);
 }
 
 // ? getOutputLowThreshold() Normal Tests exercised by above individual Electrical Property test cases.
 
 TEST_F(SM72445_Test, getOutputLowThresholdReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_HIGH), nullopt);
-	EXPECT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_IN_LOW), nullopt);
-	EXPECT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_HIGH), nullopt);
-	EXPECT_EQ(sm72445.getCurrentThreshold(SM72445::CurrentThreshold::CURRENT_OUT_LOW), nullopt);
+	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH), nullopt);
+	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW), nullopt);
+	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_HIGH), nullopt);
+	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW), nullopt);
 }
 
 TEST_F(SM72445_Test, getOutputLowThresholdReturnsNulloptIfGivenPropertyInvalid) {
 	ON_CALL(i2c, read).WillByDefault(Return(0x0ul));
-	EXPECT_EQ(sm72445.getCurrentThreshold(static_cast<SM72445::CurrentThreshold>(0xFFu)), nullopt);
+	EXPECT_EQ(sm72445.getCurrentThreshold(static_cast<CurrentThreshold>(0xFFu)), nullopt);
+}
+
+TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue) {
+	const float vinGain = 1.0f, voutGain = 2.0f, iinGain = 3.0f, ioutGain = 4.0f;
+
+	SM72445 sm72445Gain{nullptr, DeviceAddress::ADDR001, vinGain, voutGain, iinGain, ioutGain};
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_IN), vinGain);
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_OUT), voutGain);
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::CURRENT_IN), iinGain);
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::CURRENT_OUT), ioutGain);
+
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(CurrentThreshold::CURRENT_IN_HIGH), iinGain);
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(CurrentThreshold::CURRENT_IN_LOW), iinGain);
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(CurrentThreshold::CURRENT_OUT_HIGH), ioutGain);
+	EXPECT_FLOAT_EQ(sm72445Gain.getGain(CurrentThreshold::CURRENT_OUT_LOW), ioutGain);
+}
+
+TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid) {
+	SM72445 sm72445Gain{nullptr, DeviceAddress::ADDR001, 1.0f, 1.0f, 1.0f, 1.0f};
+	EXPECT_EQ(sm72445Gain.getGain(static_cast<ElectricalProperty>(0xFFu)), 0.0f);
+	EXPECT_EQ(sm72445Gain.getGain(static_cast<CurrentThreshold>(0xAAu)), 0.0f);
 }

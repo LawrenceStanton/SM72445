@@ -10,7 +10,7 @@
 
 using std::nullopt;
 
-constexpr float SM72445::getGain(SM72445::ElectricalProperty property) const {
+float SM72445::getGain(SM72445::ElectricalProperty property) const {
 	switch (property) {
 	case ElectricalProperty::CURRENT_IN:
 		return this->iInGain;
@@ -20,6 +20,19 @@ constexpr float SM72445::getGain(SM72445::ElectricalProperty property) const {
 		return this->iOutGain;
 	case ElectricalProperty::VOLTAGE_OUT:
 		return this->vOutGain;
+	default:
+		return 0.0;
+	}
+}
+
+float SM72445::getGain(SM72445::CurrentThreshold threshold) const {
+	switch (threshold) {
+	case CurrentThreshold::CURRENT_OUT_LOW:
+	case CurrentThreshold::CURRENT_OUT_HIGH:
+		return this->iOutGain;
+	case CurrentThreshold::CURRENT_IN_LOW:
+	case CurrentThreshold::CURRENT_IN_HIGH:
+		return this->iInGain;
 	default:
 		return 0.0;
 	}
@@ -38,34 +51,65 @@ SM72445::SM72445(
 	  vInGain(vInGain), vOutGain(vOutGain), iInGain(iInGain), iOutGain(iOutGain), //
 	  vDDA(vDDA) {}
 
-optional<float> SM72445::getElectricalMeasurement(ElectricalProperty property) const {
+optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
 	auto reg1 = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!reg1) return nullopt;
 
-	const uint16_t adcResult = (reg1.value() >> (static_cast<uint8_t>(property) * 10u)) & 0x3FFu;
+	const array properties = {
+		ElectricalProperty::CURRENT_IN,
+		ElectricalProperty::VOLTAGE_IN,
+		ElectricalProperty::CURRENT_OUT,
+		ElectricalProperty::VOLTAGE_OUT};
+	array<float, 4> measurements;
 
-	const float gain = getGain(property);
-	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+	for (auto property : properties) {
+		const uint16_t adcResult = (reg1.value() >> (static_cast<uint8_t>(property) * 10u)) & 0x3FFu;
 
-	const float measurement = convertAdcResultToPinVoltage(adcResult, 10u) / gain;
-	return measurement;
+		const float gain = getGain(property);
+		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
+
+		const float measurement = convertAdcResultToPinVoltage(adcResult, 10u) / gain;
+
+		measurements[static_cast<uint8_t>(property)] = measurement;
+	}
+
+	return measurements;
+}
+
+static inline optional<float>
+getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index) {
+	if (!measurements) return nullopt;
+	if (index >= measurements.value().size()) return nullopt;
+	return measurements.value()[index];
 }
 
 optional<float> SM72445::getInputCurrent(void) const {
-	return getElectricalMeasurement(ElectricalProperty::CURRENT_IN);
+	return getOptionalIndexOrNullopt( //
+		getElectricalMeasurements(),
+		static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)
+	);
 }
 
 optional<float> SM72445::getInputVoltage(void) const {
-	return getElectricalMeasurement(ElectricalProperty::VOLTAGE_IN);
+	return getOptionalIndexOrNullopt( //
+		getElectricalMeasurements(),
+		static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)
+	);
 }
 
 optional<float> SM72445::getOutputCurrent(void) const {
-	return getElectricalMeasurement(ElectricalProperty::CURRENT_OUT);
+	return getOptionalIndexOrNullopt(
+		getElectricalMeasurements(),
+		static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)
+	);
 }
 
 optional<float> SM72445::getOutputVoltage(void) const {
-	return getElectricalMeasurement(ElectricalProperty::VOLTAGE_OUT);
+	return getOptionalIndexOrNullopt(
+		getElectricalMeasurements(),
+		static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)
+	);
 }
 
 optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) const {
@@ -119,12 +163,7 @@ optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {
 
 	const uint16_t adcThreshold = (reg5.value() >> (static_cast<uint8_t>(threshold) * 10u)) & 0x3FFu;
 
-	const float gain =
-		(threshold == CurrentThreshold::CURRENT_IN_HIGH || threshold == CurrentThreshold::CURRENT_IN_LOW)
-			? getGain(ElectricalProperty::CURRENT_IN)
-		: (threshold == CurrentThreshold::CURRENT_OUT_HIGH || threshold == CurrentThreshold::CURRENT_OUT_LOW)
-			? getGain(ElectricalProperty::CURRENT_OUT)
-			: 0.0f;
+	const float gain = getGain(threshold);
 
 	if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
 

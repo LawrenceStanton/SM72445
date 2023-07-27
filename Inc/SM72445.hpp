@@ -144,6 +144,15 @@ public:
 	SM72445(const SM72445 &) = delete;
 
 	/**
+	 * @brief Get all electrical measurements from the SM72445.
+	 *
+	 * @return optional<float> The measurements, indexed by ElectricalProperty, if successful.
+	 * @note Voltage measurements are returned in Volts.
+	 * @note Current measurements are returned in Amps.
+	 */
+	optional<array<float, 4>> getElectricalMeasurements(void) const;
+
+	/**
 	 * @brief Get the Input Current measured by the SM72445.
 	 *
 	 * @return optional<float> The input current, if successful.
@@ -224,16 +233,6 @@ public:
 
 private:
 	/**
-	 * @brief Get an electrical measurement from the SM72445.
-	 *
-	 * @param property The electrical property to get the measurement for.
-	 * @return optional<float> The measurement, if successful.
-	 * @note Voltage measurements are returned in Volts.
-	 * @note Current measurements are returned in Amps.
-	 */
-	optional<float> getElectricalMeasurement(ElectricalProperty property) const;
-
-	/**
 	 * @brief Get an Analogue Configuration Channel Pin Voltage.
 	 *
 	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
@@ -250,12 +249,16 @@ private:
 	 */
 	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const;
 
-	constexpr float getGain(SM72445::ElectricalProperty property) const;
+	float getGain(SM72445::ElectricalProperty property) const;
+	float getGain(SM72445::CurrentThreshold threshold) const;
 
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_Test;
 
 	FRIEND_TEST(SM72445_Test, constructorAssignsArguments);
+
+	FRIEND_TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue);
+	FRIEND_TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid);
 
 	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfI2CReadFails);
 	FRIEND_TEST(SM72445_Test, getElectricalMeasurementReturnsNulloptIfPropertyIsInvalid);
