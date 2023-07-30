@@ -112,6 +112,9 @@ public:
 		VOLTAGE_OUT = 3u,
 	};
 
+	/**
+	 * @brief Enumerable for MPPT Current Thresholds.
+	 */
 	enum class CurrentThreshold : uint8_t {
 		CURRENT_OUT_LOW	 = 0x0u,
 		CURRENT_OUT_HIGH = 0x1u,
@@ -129,6 +132,74 @@ protected:
 	const float vOutGain;
 	const float iInGain;
 	const float iOutGain;
+
+	struct Reg0 {
+		uint16_t ADC0 : 10;
+		uint16_t ADC2 : 10;
+		uint16_t ADC4 : 10;
+		uint16_t ADC6 : 10;
+
+		Reg0(Register reg);
+		Reg0(uint16_t ADC0, uint16_t ADC2, uint16_t ADC4, uint16_t ADC6)
+			: ADC0(ADC0), //
+			  ADC2(ADC2), //
+			  ADC4(ADC4), //
+			  ADC6(ADC6){};
+
+		operator Register() const;
+		uint16_t operator[](AnalogueChannel channel) const;
+	};
+
+	struct Reg1 {
+		const uint16_t vOut : 10;
+		const uint16_t iOut : 10;
+		const uint16_t vIn	: 10;
+		const uint16_t iIn	: 10;
+
+		Reg1(Register reg);
+		Reg1(uint16_t iIn, uint16_t vIn, uint16_t iOut, uint16_t vOut)
+			: iIn(iIn),	  //
+			  vIn(vIn),	  //
+			  iOut(iOut), //
+			  vOut(vOut){};
+
+		operator Register() const;
+		uint16_t operator[](ElectricalProperty property) const;
+	};
+
+	struct Reg4 {
+		uint8_t iInOffset;
+		uint8_t vInOffset;
+		uint8_t iOutOffset;
+		uint8_t vOutOffset;
+
+		Reg4(Register reg);
+		Reg4(uint8_t iInOffset, uint8_t vInOffset, uint8_t iOutOffset, uint8_t vOutOffset)
+			: iInOffset(iInOffset),	  //
+			  vInOffset(vInOffset),	  //
+			  iOutOffset(iOutOffset), //
+			  vOutOffset(vOutOffset){};
+
+		operator Register() const;
+		uint8_t operator[](ElectricalProperty property) const;
+	};
+
+	struct Reg5 {
+		uint16_t iOutLow  : 10;
+		uint16_t iOutHigh : 10;
+		uint16_t iInLow	  : 10;
+		uint16_t iInHigh  : 10;
+
+		Reg5(Register reg);
+		Reg5(uint16_t iOutLow, uint16_t iOutHigh, uint16_t iInLow, uint16_t iInHigh)
+			: iOutLow(iOutLow),	  //
+			  iOutHigh(iOutHigh), //
+			  iInLow(iInLow),	  //
+			  iInHigh(iInHigh) {}
+
+		operator Register() const;
+		uint16_t operator[](CurrentThreshold threshold) const;
+	};
 
 public:
 	SM72445(
@@ -237,29 +308,33 @@ public:
 	optional<float> getCurrentThreshold(CurrentThreshold threshold) const;
 
 private:
-	optional<array<uint16_t, 4>> getElectricalMeasurementsAdcResults(void) const;
+	/**
+	 * @brief Get the Analogue Channel Adc Results from the SM72445.
+	 *
+	 * @return optional<Reg0> Structural representation of the register values, if successful.
+	 */
+	optional<Reg0> getAnalogueChannelAdcResults(void) const;
 
 	/**
-	 * @brief Get an Analogue Configuration Channel Pin Voltage.
+	 * @brief Get the Electrical Measurements ADC Results from the SM72445.
 	 *
-	 * @param channel The channel to read. @ref SM72445 Datasheet, Page 12.
-	 * @return optional<float> The pin voltage, if successful.
+	 * @return optional<Reg1> Structural representation of the register values, if successful.
 	 */
-	optional<array<uint16_t, 4>> getAnalogueChannelAdcResults(void) const;
+	optional<Reg1> getElectricalMeasurementsAdcResults(void) const;
 
 	/**
-	 * @brief Get the ADC Offset Register Values from the SM72445.
+	 * @brief Get the Offset Register Values from the SM72445.
 	 *
-	 * @return optional<array<uint16_t, 4>> The register values, indexed by ElectricalProperty, if successful.
+	 * @return optional<Reg4> Structural representation of the register values, if successful.
 	 */
-	optional<array<uint8_t, 4>> getOffsetRegisterValues(void) const;
+	optional<Reg4> getOffsetRegisterValues(void) const;
 
 	/**
 	 * @brief Get the register binary values for the current MPPT thresholds.
 	 *
 	 * @return optional<array<uint16_t, 4>> The register values, indexed by CurrentThreshold, if successful.
 	 */
-	optional<array<uint16_t, 4>> getThresholdRegisterValues(void) const;
+	optional<Reg5> getThresholdRegisterValues(void) const;
 
 	/**
 	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference vDDA.
@@ -294,5 +369,26 @@ private:
 	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesReturnsNulloptIfI2CReadFails);
 
 	FRIEND_TEST(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue);
+
+	FRIEND_TEST(SM72445_Reg0, constructsWithRegisterValue);
+	FRIEND_TEST(SM72445_Reg0, registerConstructsBinaryRepresentation);
+	FRIEND_TEST(SM72445_Reg0, indexOperatorReturnsCorrespondingChannelValue);
+	FRIEND_TEST(SM72445_Reg0, indexOperatorReturnsZeroIfGivenInvalidChannel);
+
+	FRIEND_TEST(SM72445_Reg1, constructsWithRegisterValue);
+	FRIEND_TEST(SM72445_Reg1, registerConstructsBinaryRepresentation);
+	FRIEND_TEST(SM72445_Reg1, indexOperatorReturnsCorrespondingChannelValue);
+	FRIEND_TEST(SM72445_Reg1, indexOperatorReturnsZeroIfGivenInvalidChannel);
+
+	FRIEND_TEST(SM72445_Reg4, constructsWithRegisterValue);
+	FRIEND_TEST(SM72445_Reg4, registerConstructsBinaryRepresentation);
+	FRIEND_TEST(SM72445_Reg4, indexOperatorReturnsCorrespondingChannelValue);
+	FRIEND_TEST(SM72445_Reg4, indexOperatorReturnsZeroIfGivenInvalidChannel);
+
+	FRIEND_TEST(SM72445_Reg5, constructsWithRegisterValue);
+	FRIEND_TEST(SM72445_Reg5, registerConstructsBinaryRepresentation);
+	FRIEND_TEST(SM72445_Reg5, indexOperatorReturnsCorrespondingChannelValue);
+	FRIEND_TEST(SM72445_Reg5, indexOperatorReturnsZeroIfGivenInvalidChannel);
+
 #endif
 };

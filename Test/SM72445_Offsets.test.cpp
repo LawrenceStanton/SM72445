@@ -12,10 +12,10 @@ TEST_F(SM72445_Test, getOffsetRegisterValuesNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
 
 	auto registerValues = sm72445.getOffsetRegisterValues().value();
-	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)], 0xEFu);
-	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)], 0xCDu);
-	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)], 0xABu);
-	EXPECT_EQ(registerValues[static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)], 0x89u);
+	EXPECT_EQ(registerValues[ElectricalProperty::CURRENT_IN], 0xEFu);
+	EXPECT_EQ(registerValues[ElectricalProperty::VOLTAGE_IN], 0xCDu);
+	EXPECT_EQ(registerValues[ElectricalProperty::CURRENT_OUT], 0xABu);
+	EXPECT_EQ(registerValues[ElectricalProperty::VOLTAGE_OUT], 0x89u);
 }
 
 TEST_F(SM72445_Test, getOffsetRegisterValuesReturnsNulloptIfI2CReadFails) {

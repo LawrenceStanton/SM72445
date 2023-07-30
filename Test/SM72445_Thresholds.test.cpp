@@ -12,10 +12,10 @@ TEST_F(SM72445_Test, getThresholdRegisterValuesNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG5))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
 
 	auto thresholdRegisterValues = sm72445.getThresholdRegisterValues().value();
-	EXPECT_EQ(thresholdRegisterValues[static_cast<uint8_t>(CurrentThreshold::CURRENT_OUT_LOW)], 0x01EFu);
-	EXPECT_EQ(thresholdRegisterValues[static_cast<uint8_t>(CurrentThreshold::CURRENT_OUT_HIGH)], 0x02F3u);
-	EXPECT_EQ(thresholdRegisterValues[static_cast<uint8_t>(CurrentThreshold::CURRENT_IN_LOW)], 0x009Au);
-	EXPECT_EQ(thresholdRegisterValues[static_cast<uint8_t>(CurrentThreshold::CURRENT_IN_HIGH)], 0x019Eu);
+	EXPECT_EQ(thresholdRegisterValues[CurrentThreshold::CURRENT_OUT_LOW], 0x01EFu);
+	EXPECT_EQ(thresholdRegisterValues[CurrentThreshold::CURRENT_OUT_HIGH], 0x02F3u);
+	EXPECT_EQ(thresholdRegisterValues[CurrentThreshold::CURRENT_IN_LOW], 0x009Au);
+	EXPECT_EQ(thresholdRegisterValues[CurrentThreshold::CURRENT_IN_HIGH], 0x019Eu);
 }
 
 TEST_F(SM72445_Test, getThresholdRegisterValuesReturnsNulloptIfI2CReadFails) {
