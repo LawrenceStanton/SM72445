@@ -51,8 +51,13 @@ public:
 	MockedI2C i2c{};
 	SM72445	  sm72445{&i2c, DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
 
-	inline void disableI2C(void) {
+	void disableI2C(void) {
 		ON_CALL(i2c, read).WillByDefault(Return(nullopt));
 		ON_CALL(i2c, write).WillByDefault(Return(nullopt));
 	}
+};
+
+class SM72445_X_Test : public SM72445_Test {
+public:
+	SM72445_X sm72445{&i2c, DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
 };

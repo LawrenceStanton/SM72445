@@ -38,7 +38,7 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltagesReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltages(), nullopt);
 }
 
-TEST_F(SM72445_Test, getAnalogueChannelVoltageNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getAnalogueChannelVoltageNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG0))) //
 		.Times(4)
 		.WillRepeatedly(Return(0x0123'4567'89AB'CDEFull));
@@ -49,7 +49,7 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltageNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH6).value(), 2.0234604f);
 }
 
-TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
+TEST_F(SM72445_X_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
 	disableI2C();
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH0), nullopt);
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH2), nullopt);
@@ -57,7 +57,7 @@ TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(AnalogueChannel::CH6), nullopt);
 }
 
-TEST_F(SM72445_Test, getAnalogueChannelVoltageReturnsNulloptIfChannelIsInvalid) {
+TEST_F(SM72445_X_Test, getAnalogueChannelVoltageReturnsNulloptIfChannelIsInvalid) {
 	ON_CALL(i2c, read).WillByDefault(Return(0x0ull));
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(static_cast<AnalogueChannel>(0xFF)), nullopt);
 }

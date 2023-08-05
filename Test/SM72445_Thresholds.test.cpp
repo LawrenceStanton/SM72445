@@ -38,7 +38,7 @@ TEST_F(SM72445_Test, getCurrentThresholdsReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getCurrentThresholds(), nullopt);
 }
 
-TEST_F(SM72445_Test, getOutputLowCurrentThresholdNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getOutputLowCurrentThresholdNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG5)))
 		.WillOnce(Return(~(~Register(0x000ul) << 0)))
 		.WillOnce(Return(~(~Register(0x3FFul) << 0)))
@@ -51,7 +51,7 @@ TEST_F(SM72445_Test, getOutputLowCurrentThresholdNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getOutputHighCurrentThresholdNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getOutputHighCurrentThresholdNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG5)))
 		.WillOnce(Return(~(~Register(0x000ul) << 10)))
 		.WillOnce(Return(~(~Register(0x3FFul) << 10)))
@@ -64,7 +64,7 @@ TEST_F(SM72445_Test, getOutputHighCurrentThresholdNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_HIGH).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getInputLowCurrentThresholdNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getInputLowCurrentThresholdNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG5)))
 		.WillOnce(Return(~(~Register(0x000ul) << 20)))
 		.WillOnce(Return(~(~Register(0x3FFul) << 20)))
@@ -77,7 +77,7 @@ TEST_F(SM72445_Test, getInputLowCurrentThresholdNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getInputHighCurrentThresholdNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getInputHighCurrentThresholdNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG5)))
 		.WillOnce(Return(~(~Register(0x000ul) << 30)))
 		.WillOnce(Return(~(~Register(0x3FFul) << 30)))
@@ -90,7 +90,7 @@ TEST_F(SM72445_Test, getInputHighCurrentThresholdNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getOutputLowThresholdReturnsNulloptIfI2CReadFails) {
+TEST_F(SM72445_X_Test, getOutputLowThresholdReturnsNulloptIfI2CReadFails) {
 	disableI2C();
 	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_HIGH), nullopt);
 	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_IN_LOW), nullopt);
@@ -98,7 +98,7 @@ TEST_F(SM72445_Test, getOutputLowThresholdReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getCurrentThreshold(CurrentThreshold::CURRENT_OUT_LOW), nullopt);
 }
 
-TEST_F(SM72445_Test, getOutputLowThresholdReturnsNulloptIfGivenPropertyInvalid) {
+TEST_F(SM72445_X_Test, getOutputLowThresholdReturnsNulloptIfGivenPropertyInvalid) {
 	ON_CALL(i2c, read).WillByDefault(Return(0x0ul));
 	EXPECT_EQ(sm72445.getCurrentThreshold(static_cast<CurrentThreshold>(0xFFu)), nullopt);
 }

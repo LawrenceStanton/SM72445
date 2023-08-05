@@ -37,7 +37,7 @@ TEST_F(SM72445_Test, getOffsetsReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getOffsets(), nullopt);
 }
 
-TEST_F(SM72445_Test, getInputCurrentOffsetNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getInputCurrentOffsetNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
 		.WillOnce(Return(~(~Register(0x00ul) << 0)))
 		.WillOnce(Return(~(~Register(0xFFul) << 0)))
@@ -49,7 +49,7 @@ TEST_F(SM72445_Test, getInputCurrentOffsetNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getInputVoltageOffsetNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getInputVoltageOffsetNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
 		.WillOnce(Return(~(~Register(0x00ul) << 8)))
 		.WillOnce(Return(~(~Register(0xFFul) << 8)))
@@ -62,7 +62,7 @@ TEST_F(SM72445_Test, getInputVoltageOffsetNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getOutputCurrentOffsetNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getOutputCurrentOffsetNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
 		.WillOnce(Return(~(~Register(0x00ul) << 16)))
 		.WillOnce(Return(~(~Register(0xFFul) << 16)))
@@ -75,7 +75,7 @@ TEST_F(SM72445_Test, getOutputCurrentOffsetNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_OUT).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getOutputVoltageOffsetNormallyReturnsValue) {
+TEST_F(SM72445_X_Test, getOutputVoltageOffsetNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4)))
 		.WillOnce(Return(~(~Register(0x00ul) << 24)))
 		.WillOnce(Return(~(~Register(0xFFul) << 24)))
@@ -88,7 +88,7 @@ TEST_F(SM72445_Test, getOutputVoltageOffsetNormallyReturnsValue) {
 	EXPECT_FLOAT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT).value(), 3.3333333f);
 }
 
-TEST_F(SM72445_Test, getOffsetReturnsNulloptIfI2CReadFails) {
+TEST_F(SM72445_X_Test, getOffsetReturnsNulloptIfI2CReadFails) {
 	disableI2C();
 	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::CURRENT_IN), nullopt);
 	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_IN), nullopt);
@@ -96,7 +96,7 @@ TEST_F(SM72445_Test, getOffsetReturnsNulloptIfI2CReadFails) {
 	EXPECT_EQ(sm72445.getOffset(ElectricalProperty::VOLTAGE_OUT), nullopt);
 }
 
-TEST_F(SM72445_Test, getOffsetReturnsNulloptIfGivenPropertyInvalid) {
+TEST_F(SM72445_X_Test, getOffsetReturnsNulloptIfGivenPropertyInvalid) {
 	ON_CALL(i2c, read).WillByDefault(Return(0x0ul));
 	EXPECT_EQ(sm72445.getOffset(static_cast<ElectricalProperty>(0xFFu)), nullopt);
 }

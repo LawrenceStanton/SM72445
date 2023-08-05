@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON) # Requires std::optional in C++17.
 
 add_library(${LIBRARY} STATIC
 	Src/SM72445.cpp
+	Src/SM72445_X.cpp
 )
 
 target_include_directories(${LIBRARY} PUBLIC
@@ -57,7 +58,7 @@ if(NOT CMAKE_CROSSCOMPILING)
 	set(TEST_EXECUTABLE ${LIBRARY}_Test)
 
 	file(GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Test/*.cpp)
-	
+
 	add_executable(${TEST_EXECUTABLE}
 		${TEST_SOURCES}
 	)
@@ -80,7 +81,7 @@ if(NOT CMAKE_CROSSCOMPILING)
 	target_link_options(${TEST_EXECUTABLE} PRIVATE
 		$<$<BOOL:${SM72445_CODE_COVERAGE}>:--coverage>
 	)
-	
+
 	include(GoogleTest)
 	gtest_discover_tests(${TEST_EXECUTABLE})
 

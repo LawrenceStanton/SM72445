@@ -10,9 +10,6 @@
 
 using std::nullopt;
 
-static inline optional<float>
-getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index);
-
 SM72445::SM72445(
 	I2C			 *i2c,
 	DeviceAddress deviceAddress,
@@ -53,34 +50,6 @@ optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
 	return measurements;
 }
 
-optional<float> SM72445::getInputCurrent(void) const {
-	return getOptionalIndexOrNullopt( //
-		getElectricalMeasurements(),
-		static_cast<uint8_t>(ElectricalProperty::CURRENT_IN)
-	);
-}
-
-optional<float> SM72445::getInputVoltage(void) const {
-	return getOptionalIndexOrNullopt( //
-		getElectricalMeasurements(),
-		static_cast<uint8_t>(ElectricalProperty::VOLTAGE_IN)
-	);
-}
-
-optional<float> SM72445::getOutputCurrent(void) const {
-	return getOptionalIndexOrNullopt(
-		getElectricalMeasurements(),
-		static_cast<uint8_t>(ElectricalProperty::CURRENT_OUT)
-	);
-}
-
-optional<float> SM72445::getOutputVoltage(void) const {
-	return getOptionalIndexOrNullopt(
-		getElectricalMeasurements(),
-		static_cast<uint8_t>(ElectricalProperty::VOLTAGE_OUT)
-	);
-}
-
 optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
 	auto regValues = getAnalogueChannelAdcResults();
 
@@ -103,10 +72,6 @@ optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
 	}
 
 	return voltages;
-}
-
-optional<float> SM72445::getAnalogueChannelVoltage(AnalogueChannel channel) const {
-	return getOptionalIndexOrNullopt(getAnalogueChannelVoltages(), static_cast<uint8_t>(channel));
 }
 
 optional<array<float, 4>> SM72445::getOffsets(void) const {
@@ -137,15 +102,6 @@ optional<array<float, 4>> SM72445::getOffsets(void) const {
 	return offsets;
 }
 
-optional<float> SM72445::getOffset(ElectricalProperty property) const {
-	auto offsets = getOffsets();
-	if (!offsets) return nullopt;
-	else {
-		if (static_cast<uint8_t>(property) >= offsets.value().size()) return nullopt;
-		else return offsets.value()[static_cast<uint8_t>(property)];
-	}
-}
-
 optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
 	const auto thresholdRegValues = getThresholdRegisterValues();
 
@@ -170,10 +126,6 @@ optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
 		thresholds[static_cast<uint8_t>(property)] = threshold;
 	}
 	return thresholds;
-}
-
-optional<float> SM72445::getCurrentThreshold(CurrentThreshold threshold) const {
-	return getOptionalIndexOrNullopt(getCurrentThresholds(), static_cast<uint8_t>(threshold));
 }
 
 optional<SM72445::Reg0> SM72445::getAnalogueChannelAdcResults(void) const {
@@ -218,13 +170,6 @@ float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resoluti
 	const float maxAdcResult = (1u << resolution) - 1u;
 	float		voltage		 = adcResult / maxAdcResult * this->vDDA;
 	return voltage;
-}
-
-static inline optional<float>
-getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index) {
-	if (!measurements) return nullopt;
-	if (index >= measurements.value().size()) return nullopt;
-	return measurements.value()[index];
 }
 
 float SM72445::getGain(SM72445::ElectricalProperty property) const {
