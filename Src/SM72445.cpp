@@ -11,7 +11,7 @@
 using std::nullopt;
 
 SM72445::SM72445(
-	I2C			 *i2c,
+	I2C			 &i2c,
 	DeviceAddress deviceAddress,
 	float		  vInGain,
 	float		  vOutGain,
@@ -19,9 +19,9 @@ SM72445::SM72445(
 	float		  iOutGain,
 	float		  vDDA
 )
-	: i2c(i2c), deviceAddress(deviceAddress),									  //
-	  vInGain(vInGain), vOutGain(vOutGain), iInGain(iInGain), iOutGain(iOutGain), //
-	  vDDA(vDDA) {}
+	: i2c{i2c}, deviceAddress{deviceAddress},									  //
+	  vInGain{vInGain}, vOutGain{vOutGain}, iInGain{iInGain}, iOutGain{iOutGain}, //
+	  vDDA{vDDA} {}
 
 optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
 	auto regValues = getElectricalMeasurementsAdcResults();
@@ -129,7 +129,7 @@ optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
 }
 
 optional<SM72445::Reg0> SM72445::getAnalogueChannelAdcResults(void) const {
-	auto transmission = this->i2c->read(this->deviceAddress, MemoryAddress::REG0);
+	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG0);
 
 	if (!transmission) return nullopt;
 
@@ -138,7 +138,7 @@ optional<SM72445::Reg0> SM72445::getAnalogueChannelAdcResults(void) const {
 }
 
 optional<SM72445::Reg1> SM72445::getElectricalMeasurementsAdcResults(void) const {
-	auto transmission = this->i2c->read(this->deviceAddress, MemoryAddress::REG1);
+	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG1);
 
 	if (!transmission) return nullopt;
 
@@ -147,7 +147,7 @@ optional<SM72445::Reg1> SM72445::getElectricalMeasurementsAdcResults(void) const
 }
 
 optional<SM72445::Reg4> SM72445::getOffsetRegisterValues(void) const {
-	auto transmission = this->i2c->read(this->deviceAddress, MemoryAddress::REG4);
+	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG4);
 
 	if (!transmission) return nullopt;
 
@@ -156,7 +156,7 @@ optional<SM72445::Reg4> SM72445::getOffsetRegisterValues(void) const {
 }
 
 optional<SM72445 ::Reg5> SM72445::getThresholdRegisterValues(void) const {
-	auto transmission = this->i2c->read(this->deviceAddress, MemoryAddress::REG5);
+	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG5);
 
 	if (!transmission) return nullopt;
 

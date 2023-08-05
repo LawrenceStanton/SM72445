@@ -9,7 +9,7 @@
 #include "SM72445.test.hpp"
 
 TEST_F(SM72445_Test, constructorAssignsArguments) {
-	ASSERT_EQ(sm72445.i2c, &i2c);
+	ASSERT_EQ(&sm72445.i2c, &i2c);
 	ASSERT_EQ(sm72445.deviceAddress, DeviceAddress::ADDR001);
 	ASSERT_EQ(sm72445.vInGain, .5f);
 	ASSERT_EQ(sm72445.vOutGain, .5f);
@@ -37,7 +37,7 @@ TEST_F(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue) {
 TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue) {
 	const float vInGain = 1.0f, vOutGain = 2.0f, iInGain = 3.0f, iOutGain = 4.0f;
 
-	SM72445 sm72445Gain{nullptr, DeviceAddress::ADDR001, vInGain, vOutGain, iInGain, iOutGain};
+	SM72445 sm72445Gain{*(SM72445::I2C *)(nullptr), DeviceAddress::ADDR001, vInGain, vOutGain, iInGain, iOutGain};
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_IN), vInGain);
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_OUT), vOutGain);
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::CURRENT_IN), iInGain);
@@ -50,7 +50,7 @@ TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue) {
 }
 
 TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid) {
-	SM72445 sm72445Gain{nullptr, DeviceAddress::ADDR001, 1.0f, 1.0f, 1.0f, 1.0f};
+	SM72445 sm72445Gain{*(SM72445::I2C *)(nullptr), DeviceAddress::ADDR001, 1.0f, 1.0f, 1.0f, 1.0f};
 	EXPECT_EQ(sm72445Gain.getGain(static_cast<ElectricalProperty>(0xFFu)), 0.0f);
 	EXPECT_EQ(sm72445Gain.getGain(static_cast<CurrentThreshold>(0xAAu)), 0.0f);
 }
