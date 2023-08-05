@@ -177,6 +177,83 @@ TEST(SM72445_Reg1, indexOperatorReturnsZeroIfGivenInvalidChannel) {
 	EXPECT_EQ(reg1[static_cast<ElectricalProperty>(0xFFu)], 0x0u);
 }
 
+TEST(SM72445_Reg3, constructsWithRegisterValue) {
+	using Override	  = SM72445::Reg3::Override;
+	using PassThrough = SM72445::Reg3::PassThrough;
+
+	SM72445::Reg3 reg3Zero{Register(0x0ul)};
+	EXPECT_EQ(reg3Zero.overrideAdcProgramming, Override::OFF);
+	EXPECT_EQ(reg3Zero.a2Override, 0x0u);
+	EXPECT_EQ(reg3Zero.iOutMax, 0x0u);
+	EXPECT_EQ(reg3Zero.vOutMax, 0x0u);
+	EXPECT_EQ(reg3Zero.tdOff, 0x0u);
+	EXPECT_EQ(reg3Zero.tdOn, 0x0u);
+	EXPECT_EQ(reg3Zero.dcOpen, 0x0u);
+	EXPECT_EQ(reg3Zero.passThroughSelect, PassThrough::OFF);
+	EXPECT_EQ(reg3Zero.passThroughManual, PassThrough::OFF);
+	EXPECT_EQ(reg3Zero.bbReset, false);
+	EXPECT_EQ(reg3Zero.clkOeManual, false);
+	EXPECT_EQ(reg3Zero.openLoopOperation, Override::OFF);
+
+	SM72445::Reg3 reg3Max{Register(~0x0ul)};
+	EXPECT_EQ(reg3Max.overrideAdcProgramming, Override::ON);
+	EXPECT_EQ(reg3Max.a2Override, 0x7u);
+	EXPECT_EQ(reg3Max.iOutMax, 0x3FFu);
+	EXPECT_EQ(reg3Max.vOutMax, 0x3FFu);
+	EXPECT_EQ(reg3Max.tdOff, 0x7u);
+	EXPECT_EQ(reg3Max.tdOn, 0x7u);
+	EXPECT_EQ(reg3Max.dcOpen, 0x1FFu);
+	EXPECT_EQ(reg3Max.passThroughSelect, PassThrough::ON);
+	EXPECT_EQ(reg3Max.passThroughManual, PassThrough::ON);
+	EXPECT_EQ(reg3Max.bbReset, true);
+	EXPECT_EQ(reg3Max.clkOeManual, true);
+	EXPECT_EQ(reg3Max.openLoopOperation, Override::ON);
+
+	SM72445::Reg3 reg3Alt1{Register(0x5555'5555'5555'5555ul)};
+	EXPECT_EQ(reg3Alt1.overrideAdcProgramming, Override::ON);
+	EXPECT_EQ(reg3Alt1.a2Override, 0x5u);
+	EXPECT_EQ(reg3Alt1.iOutMax, 0x155u);
+	EXPECT_EQ(reg3Alt1.vOutMax, 0x155u);
+	EXPECT_EQ(reg3Alt1.tdOff, 0x2u);
+	EXPECT_EQ(reg3Alt1.tdOn, 0x5u);
+	EXPECT_EQ(reg3Alt1.dcOpen, 0x0AAu);
+	EXPECT_EQ(reg3Alt1.passThroughSelect, PassThrough::ON);
+	EXPECT_EQ(reg3Alt1.passThroughManual, PassThrough::OFF);
+	EXPECT_EQ(reg3Alt1.bbReset, true);
+	EXPECT_EQ(reg3Alt1.clkOeManual, false);
+	EXPECT_EQ(reg3Alt1.openLoopOperation, Override::ON);
+
+	SM72445::Reg3 reg3Alt2{Register(0xAAAA'AAAA'AAAA'AAAAul)};
+	EXPECT_EQ(reg3Alt2.overrideAdcProgramming, Override::OFF);
+	EXPECT_EQ(reg3Alt2.a2Override, 0x2u);
+	EXPECT_EQ(reg3Alt2.iOutMax, 0x2AAu);
+	EXPECT_EQ(reg3Alt2.vOutMax, 0x2AAu);
+	EXPECT_EQ(reg3Alt2.tdOff, 0x5u);
+	EXPECT_EQ(reg3Alt2.tdOn, 0x2u);
+	EXPECT_EQ(reg3Alt2.dcOpen, 0x155u);
+	EXPECT_EQ(reg3Alt2.passThroughSelect, PassThrough::OFF);
+	EXPECT_EQ(reg3Alt2.passThroughManual, PassThrough::ON);
+	EXPECT_EQ(reg3Alt2.bbReset, false);
+	EXPECT_EQ(reg3Alt2.clkOeManual, true);
+	EXPECT_EQ(reg3Alt2.openLoopOperation, Override::OFF);
+}
+
+TEST(SM72445_Reg3, registerConstructsBinaryRepresentation) {
+	const Register reg3UsedBitsMask = 0x1'CFFF'FFFF'FFFFul;
+	for (Register value : {
+			 0x0ul,
+			 0x1ul,
+			 ~0x0ul,
+			 0x5555'5555'5555'5555ul,
+			 0xAAAA'AAAA'AAAA'AAAAul,
+			 0xA6'1239'FE42'FEDCul,
+		 }) {
+		SM72445::Reg3  reg3{value};
+		const Register regOnlyUsedBits = reg3 & reg3UsedBitsMask;
+		EXPECT_EQ(reg3, regOnlyUsedBits);
+	}
+}
+
 TEST(SM72445_Reg4, constructsWithRegisterValue) {
 	SM72445::Reg4 reg4{Register(0x03020100ul)};
 	EXPECT_EQ(reg4.iInOffset, 0x000u);

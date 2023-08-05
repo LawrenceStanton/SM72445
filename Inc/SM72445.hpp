@@ -20,7 +20,7 @@ public:
 	/**
 	 * @brief I2C interface for the SM72445.
 	 *
-	 * @details
+	 * @note
 	 * This interface is used to abstract the I2C communication from the SM72445 class.
 	 * A concrete implementation is then aggregated by the SM72445 class.
 	 * The concrete implementation of this interface should be provided by the user.
@@ -106,10 +106,10 @@ public:
 	 * @brief Generic enumerable for core electrical properties.
 	 */
 	enum class ElectricalProperty : uint8_t {
-		CURRENT_IN	= 0u,
-		VOLTAGE_IN	= 1u,
-		CURRENT_OUT = 2u,
-		VOLTAGE_OUT = 3u,
+		CURRENT_IN	= 0x0u,
+		VOLTAGE_IN	= 0x1u,
+		CURRENT_OUT = 0x2u,
+		VOLTAGE_OUT = 0x3u,
 	};
 
 	/**
@@ -141,10 +141,10 @@ protected:
 
 		Reg0(Register reg);
 		Reg0(uint16_t ADC0, uint16_t ADC2, uint16_t ADC4, uint16_t ADC6)
-			: ADC0(ADC0), //
-			  ADC2(ADC2), //
-			  ADC4(ADC4), //
-			  ADC6(ADC6){};
+			: ADC0{ADC0}, //
+			  ADC2{ADC2}, //
+			  ADC4{ADC4}, //
+			  ADC6{ADC6} {};
 
 		operator Register() const;
 		uint16_t operator[](AnalogueChannel channel) const;
@@ -158,13 +158,56 @@ protected:
 
 		Reg1(Register reg);
 		Reg1(uint16_t iIn, uint16_t vIn, uint16_t iOut, uint16_t vOut)
-			: iIn(iIn),	  //
-			  vIn(vIn),	  //
-			  iOut(iOut), //
-			  vOut(vOut){};
+			: iIn{iIn},	  //
+			  vIn{vIn},	  //
+			  iOut{iOut}, //
+			  vOut{vOut} {};
 
 		operator Register() const;
 		uint16_t operator[](ElectricalProperty property) const;
+	};
+
+	struct Reg3 {
+		enum class Override : bool {
+			OFF = false,
+			ON	= true,
+		};
+
+		enum class PassThrough : bool {
+			OFF = false,
+			ON	= true,
+		};
+
+		Override overrideAdcProgramming : 1; // {1'b0}
+	private:
+		Register rsvd3 : 2; // {2'd1} Reserved bits that must be set to default.
+	public:
+		Register a2Override : 3;  // {3'd0} Override enable for ADC2.
+		Register iOutMax	: 10; // {10'd1023} Override maximum output current.
+		Register vOutMax	: 10; // {10'1023} Override maximum output voltage.
+		Register tdOff		: 3;  // {3'h3} Dead time off.
+		Register tdOn		: 3;  // {3'h3} Dead time on.
+	private:
+		Register dcOpen : 9; // {9'FF} Open loop duty cycle. TESTING ONLY.
+	public:
+		PassThrough passThroughSelect : 1; // {1'b0} Override enable I2C control of Panel Mode
+		PassThrough passThroughManual : 1; // {1'b0} Panel Mode Override Control
+		bool		bbReset			  : 1; // {1'b0} Soft Reset
+		bool		clkOeManual		  : 1; // {1'b0} Enable PPL Clock on SM72445 Pin 5
+		Override	openLoopOperation : 1; // {1'b0} Enable Open Loop Operation. Note complex enable sequence required.
+
+		/**
+		 * @brief Construct a default representation of the SM72445 Register 3.
+		 * @note The default values are the reset values for the SM72445.
+		 */
+		Reg3() : rsvd3{1u}, iOutMax{1023u}, vOutMax{1023u}, tdOff{0x3u}, tdOn{0x3u}, dcOpen{0x0FFu} {}
+		Reg3(Register reg);
+
+		operator Register() const;
+
+#ifdef SM72445_GTEST_TESTING
+		FRIEND_TEST(SM72445_Reg3, constructsWithRegisterValue);
+#endif
 	};
 
 	struct Reg4 {
@@ -175,10 +218,10 @@ protected:
 
 		Reg4(Register reg);
 		Reg4(uint8_t iInOffset, uint8_t vInOffset, uint8_t iOutOffset, uint8_t vOutOffset)
-			: iInOffset(iInOffset),	  //
-			  vInOffset(vInOffset),	  //
-			  iOutOffset(iOutOffset), //
-			  vOutOffset(vOutOffset){};
+			: iInOffset{iInOffset},	  //
+			  vInOffset{vInOffset},	  //
+			  iOutOffset{iOutOffset}, //
+			  vOutOffset{vOutOffset} {};
 
 		operator Register() const;
 		uint8_t operator[](ElectricalProperty property) const;
@@ -379,6 +422,9 @@ private:
 	FRIEND_TEST(SM72445_Reg1, registerConstructsBinaryRepresentation);
 	FRIEND_TEST(SM72445_Reg1, indexOperatorReturnsCorrespondingChannelValue);
 	FRIEND_TEST(SM72445_Reg1, indexOperatorReturnsZeroIfGivenInvalidChannel);
+
+	FRIEND_TEST(SM72445_Reg3, constructsWithRegisterValue);
+	FRIEND_TEST(SM72445_Reg3, registerConstructsBinaryRepresentation);
 
 	FRIEND_TEST(SM72445_Reg4, constructsWithRegisterValue);
 	FRIEND_TEST(SM72445_Reg4, registerConstructsBinaryRepresentation);
