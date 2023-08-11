@@ -6,8 +6,8 @@ set(LIBRARY ${PROJECT_NAME})
 
 enable_language(CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON) # Requires std::optional in C++17.
+set(CMAKE_CXX_STANDARD 17) # Requires std::optional in C++17.
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(${LIBRARY} STATIC
 	Src/SM72445.cpp
@@ -22,26 +22,18 @@ add_library(${LIBRARY}::${LIBRARY} ALIAS ${LIBRARY})
 
 if(NOT CMAKE_CROSSCOMPILING)
 	option(SM72445_CODE_COVERAGE "Enable gcovr code coverage for SM72445" OFF)
-	option(SM72445_AUTOFETCH_GTEST "Automatically fetch GTest if not included by parent." ON)
 
-	if(SM72445_AUTOFETCH_GTEST)
-		if(NOT TARGET GTest::gtest OR NOT TARGET GTest::gmock)
-			message(STATUS "GTest not found. Fetching...")
+	include(FetchContent)
+	FetchContent_Declare(
+		googletest
+		GIT_REPOSITORY https://github.com/google/googletest
+		GIT_TAG origin/main
+	)
+	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+	FetchContent_MakeAvailable(googletest)
 
-			include(FetchContent)
-			FetchContent_Declare(
-				googletest
-				GIT_REPOSITORY https://github.com/google/googletest
-				GIT_TAG origin/main
-			)
-			set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-			FetchContent_MakeAvailable(googletest)
+	enable_testing()
 
-			enable_testing()
-		endif()
-	endif()
-
-	# Add addittional configuration to library target.
 	target_link_libraries(${LIBRARY} PRIVATE
 		GTest::gtest
 	)
@@ -54,7 +46,6 @@ if(NOT CMAKE_CROSSCOMPILING)
 		$<$<BOOL:${SM72445_CODE_COVERAGE}>:--coverage>
 	)
 
-	# GTest Test Executable
 	set(TEST_EXECUTABLE ${LIBRARY}_Test)
 
 	file(GLOB TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Test/*.cpp)
