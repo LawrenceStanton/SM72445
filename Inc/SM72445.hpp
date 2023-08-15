@@ -349,11 +349,12 @@ enum class SM72445::I2C::MemoryAddress : uint8_t {
 };
 
 struct SM72445::Reg0 {
-	uint16_t ADC0 : 10;
-	uint16_t ADC2 : 10;
-	uint16_t ADC4 : 10;
 	uint16_t ADC6 : 10;
+	uint16_t ADC4 : 10;
+	uint16_t ADC2 : 10;
+	uint16_t ADC0 : 10;
 
+	Reg0() = default;
 	Reg0(Register reg);
 	Reg0(uint16_t ADC0, uint16_t ADC2, uint16_t ADC4, uint16_t ADC6)
 		: ADC0{ADC0}, //
@@ -361,7 +362,7 @@ struct SM72445::Reg0 {
 		  ADC4{ADC4}, //
 		  ADC6{ADC6} {};
 
-	operator Register() const;
+	explicit operator Register() const;
 	uint16_t operator[](AnalogueChannel channel) const;
 };
 
@@ -371,6 +372,7 @@ struct SM72445::Reg1 {
 	const uint16_t vIn	: 10;
 	const uint16_t iIn	: 10;
 
+	Reg1() = default;
 	Reg1(Register reg);
 	Reg1(uint16_t iIn, uint16_t vIn, uint16_t iOut, uint16_t vOut)
 		: iIn{iIn},	  //
@@ -378,76 +380,66 @@ struct SM72445::Reg1 {
 		  iOut{iOut}, //
 		  vOut{vOut} {};
 
-	operator Register() const;
+	explicit operator Register() const;
 	uint16_t operator[](ElectricalProperty property) const;
 };
 
 struct SM72445::Reg3 {
-	enum class Override : bool {
-		OFF = false,
-		ON	= true,
-	};
 
-	enum class PassThrough : bool {
-		OFF = false,
-		ON	= true,
-	};
-
-	Override overrideAdcProgramming : 1; // {1'b0}
+public:
+	bool overrideAdcProgramming : 1; // {1'b0}
 private:
 	Register rsvd3 : 2; // {2'd1} Reserved bits that must be set to default.
 public:
-	Register a2Override : 3;  // {3'd0} Override enable for ADC2.
-	Register iOutMax	: 10; // {10'd1023} Override maximum output current.
-	Register vOutMax	: 10; // {10'1023} Override maximum output voltage.
-	Register tdOff		: 3;  // {3'h3} Dead time off.
-	Register tdOn		: 3;  // {3'h3} Dead time on.
+	uint8_t	 a2Override : 3;  // {3'd0} Override enable for ADC2.
+	uint16_t iOutMax	: 10; // {10'd1023} Override maximum output current.
+	uint16_t vOutMax	: 10; // {10'1023} Override maximum output voltage.
+	uint8_t	 tdOff		: 3;  // {3'h3} Dead time off.
+	uint8_t	 tdOn		: 3;  // {3'h3} Dead time on.
 private:
 	Register dcOpen : 9; // {9'FF} Open loop duty cycle. TESTING ONLY.
 public:
-	PassThrough passThroughSelect : 1; // {1'b0} Override enable I2C control of Panel Mode
-	PassThrough passThroughManual : 1; // {1'b0} Panel Mode Override Control
-	bool		bbReset			  : 1; // {1'b0} Soft Reset
-	bool		clkOeManual		  : 1; // {1'b0} Enable PPL Clock on SM72445 Pin 5
-	Override	openLoopOperation : 1; // {1'b0} Enable Open Loop Operation. Note complex enable sequence required.
+	bool passThroughSelect : 1; // {1'b0} Override enable I2C control of Panel Mode
+	bool passThroughManual : 1; // {1'b0} Panel Mode Override Control
+	bool bbReset		   : 1; // {1'b0} Soft Reset
+	bool clkOeManual	   : 1; // {1'b0} Enable PPL Clock on SM72445 Pin 5
+	bool openLoopOperation : 1; // {1'b0} Enable Open Loop Operation. Note complex enable sequence required.
 
-	/**
-	 * @brief Construct a default representation of the SM72445 Register 3.
-	 * @note The default values are the reset values for the SM72445.
-	 */
 	Reg3() : rsvd3{1u}, iOutMax{1023u}, vOutMax{1023u}, tdOff{0x3u}, tdOn{0x3u}, dcOpen{0x0FFu} {}
 	Reg3(Register reg);
-
-	operator Register() const;
+	explicit operator Register() const;
 
 #ifdef SM72445_GTEST_TESTING
 	FRIEND_TEST(SM72445_Reg3, constructsWithRegisterValue);
+	FRIEND_TEST(SM72445_Reg3, registerConstructsBinaryRepresentation);
 #endif
 };
 
 struct SM72445::Reg4 {
-	uint8_t iInOffset;
-	uint8_t vInOffset;
-	uint8_t iOutOffset;
 	uint8_t vOutOffset;
+	uint8_t iOutOffset;
+	uint8_t vInOffset;
+	uint8_t iInOffset;
 
+	Reg4() = default;
 	Reg4(Register reg);
 	Reg4(uint8_t iInOffset, uint8_t vInOffset, uint8_t iOutOffset, uint8_t vOutOffset)
 		: iInOffset{iInOffset},	  //
 		  vInOffset{vInOffset},	  //
 		  iOutOffset{iOutOffset}, //
-		  vOutOffset{vOutOffset} {};
+		  vOutOffset{vOutOffset} {}
 
-	operator Register() const;
+	explicit operator Register() const;
 	uint8_t operator[](ElectricalProperty property) const;
 };
 
 struct SM72445::Reg5 {
-	uint16_t iOutLow  : 10;
-	uint16_t iOutHigh : 10;
-	uint16_t iInLow	  : 10;
 	uint16_t iInHigh  : 10;
+	uint16_t iInLow	  : 10;
+	uint16_t iOutHigh : 10;
+	uint16_t iOutLow  : 10;
 
+	Reg5() : iInHigh{40}, iInLow{24}, iOutHigh{40}, iOutLow{24} {}
 	Reg5(Register reg);
 	Reg5(uint16_t iOutLow, uint16_t iOutHigh, uint16_t iInLow, uint16_t iInHigh)
 		: iOutLow(iOutLow),	  //
@@ -455,6 +447,6 @@ struct SM72445::Reg5 {
 		  iInLow(iInLow),	  //
 		  iInHigh(iInHigh) {}
 
-	operator Register() const;
+	explicit operator Register() const;
 	uint16_t operator[](CurrentThreshold threshold) const;
 };

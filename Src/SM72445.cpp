@@ -257,35 +257,47 @@ uint16_t SM72445::Reg1::operator[](ElectricalProperty property) const {
 		return 0u;
 	}
 }
-
 SM72445::Reg3::Reg3(Register reg)
-	: overrideAdcProgramming{static_cast<Override>(!!(reg & (0x1ull << 46u)))},
-	  a2Override{static_cast<Register>((reg & (0x7ull << 40u)) >> 40u)},
-	  iOutMax{static_cast<Register>((reg & (0x3FFull << 30u)) >> 30u)},
-	  vOutMax{static_cast<Register>((reg & (0x3FFull << 20u)) >> 20u)},
-	  tdOff{static_cast<Register>((reg & (0x7ull << 17u)) >> 17u)},
-	  tdOn{static_cast<Register>((reg & (0x7ull << 14u)) >> 14u)},
-	  dcOpen{static_cast<Register>((reg & (0x3FFull << 5u)) >> 5u)},
-	  passThroughSelect{static_cast<PassThrough>(!!(reg & (0x1ull << 4u)))},
-	  passThroughManual{static_cast<PassThrough>(!!(reg & (0x1ull << 3u)))}, //
-	  bbReset{static_cast<bool>(reg & (0x1ull << 2u))},						 //
-	  clkOeManual{static_cast<bool>(reg & (0x1ull << 1u))},
-	  openLoopOperation{static_cast<Override>(!!(reg & (0x1ull << 0u)))} {}
+	: overrideAdcProgramming{!!((reg >> 46u) & 0x1u)},		 //
+	  a2Override{static_cast<uint8_t>((reg >> 40u) & 0x7u)}, //
+	  iOutMax{static_cast<uint16_t>((reg >> 30u) & 0x3FFu)}, //
+	  vOutMax{static_cast<uint16_t>((reg >> 20u) & 0x3FFu)}, //
+	  tdOff{static_cast<uint8_t>((reg >> 17u) & 0x7u)},		 //
+	  tdOn{static_cast<uint8_t>((reg >> 14u) & 0x7u)},		 //
+	  dcOpen{static_cast<uint8_t>((reg >> 5u) & 0x3FFu)},	 //
+	  passThroughSelect{!!((reg >> 4u) & 0x1u)},			 //
+	  passThroughManual{!!((reg >> 3u) & 0x1u)},			 //
+	  bbReset{!!((reg >> 2u) & 0x1u)},						 //
+	  clkOeManual{!!((reg >> 1u) & 0x1u)},					 //
+	  openLoopOperation{!!(reg & 0x1u)} {}
+// SM72445::Reg3::Reg3(Register reg)
+// 	: overrideAdcProgramming{static_cast<Override>(!!(reg & (0x1ull << 46u)))},
+// 	  a2Override{static_cast<Register>((reg & (0x7ull << 40u)) >> 40u)},
+// 	  iOutMax{static_cast<Register>((reg & (0x3FFull << 30u)) >> 30u)},
+// 	  vOutMax{static_cast<Register>((reg & (0x3FFull << 20u)) >> 20u)},
+// 	  tdOff{static_cast<Register>((reg & (0x7ull << 17u)) >> 17u)},
+// 	  tdOn{static_cast<Register>((reg & (0x7ull << 14u)) >> 14u)},
+// 	  dcOpen{static_cast<Register>((reg & (0x3FFull << 5u)) >> 5u)},
+// 	  passThroughSelect{static_cast<PassThrough>(!!(reg & (0x1ull << 4u)))},
+// 	  passThroughManual{static_cast<PassThrough>(!!(reg & (0x1ull << 3u)))}, //
+// 	  bbReset{static_cast<bool>(reg & (0x1ull << 2u))},						 //
+// 	  clkOeManual{static_cast<bool>(reg & (0x1ull << 1u))},
+// 	  openLoopOperation{static_cast<Override>(!!(reg & (0x1ull << 0u)))} {}
 
 SM72445::Reg3::operator Register() const {
-	const Register reg = static_cast<Register>(static_cast<bool>(this->overrideAdcProgramming) ? (0x1ull << 46u) : 0ull)
-					   | (static_cast<Register>(0b1ull << 43u))								  // Reserved bit
-					   | (static_cast<Register>(this->a2Override) << 40u)					  //
-					   | (static_cast<Register>(this->iOutMax) << 30u)						  //
-					   | (static_cast<Register>(this->vOutMax) << 20u)						  //
-					   | (static_cast<Register>(this->tdOff) << 17u)						  //
-					   | (static_cast<Register>(this->tdOn) << 14u)							  //
-					   | (static_cast<Register>(this->dcOpen) << 5u)						  //
-					   | (static_cast<bool>(this->passThroughSelect) ? (0x1ull << 4u) : 0ull) //
-					   | (static_cast<bool>(this->passThroughManual) ? (0x1ull << 3u) : 0ull) //
-					   | (this->bbReset ? (0x1ull << 2u) : 0ull)							  //
-					   | (this->clkOeManual ? (0x1ull << 1u) : 0ull)						  //
-					   | (static_cast<bool>(this->openLoopOperation) ? (0x1ull << 0u) : 0ull);
+	const Register reg = (static_cast<Register>(this->overrideAdcProgramming & 0x1u) << 46u)
+					   | (static_cast<Register>(0b1ull << 43u))						   // Reserved bit
+					   | (static_cast<Register>(this->a2Override) << 40u)			   //
+					   | (static_cast<Register>(this->iOutMax) << 30u)				   //
+					   | (static_cast<Register>(this->vOutMax) << 20u)				   //
+					   | (static_cast<Register>(this->tdOff) << 17u)				   //
+					   | (static_cast<Register>(this->tdOn) << 14u)					   //
+					   | (static_cast<Register>(this->dcOpen) << 5u)				   //
+					   | (static_cast<Register>(this->passThroughSelect & 0x1u) << 4u) //
+					   | (static_cast<Register>(this->passThroughManual & 0x1u) << 3u) //
+					   | (static_cast<Register>(this->bbReset & 0x1u) << 2u)		   //
+					   | (static_cast<Register>(this->clkOeManual & 0x1u) << 1u)	   //
+					   | (static_cast<Register>(this->openLoopOperation & 0x1u));
 	return reg;
 };
 
