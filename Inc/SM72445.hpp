@@ -124,6 +124,8 @@ protected:
 	struct Reg4;
 	struct Reg5;
 
+	typedef Reg3 Config;
+
 public:
 	SM72445(
 		I2C			 &i2c,
@@ -140,7 +142,7 @@ public:
 	/**
 	 * @brief Get all electrical measurements from the SM72445.
 	 *
-	 * @return optional<float> The measurements, indexed by ElectricalProperty, if successful.
+	 * @return The measurements, indexed by ElectricalProperty, if successful.
 	 * @note Voltage measurements are returned in Volts.
 	 * @note Current measurements are returned in Amps.
 	 */
@@ -149,7 +151,7 @@ public:
 	/**
 	 * @brief Get the Analogue Configuration Channel Pin Voltages.
 	 *
-	 * @return optional<float> The pin voltages, indexed by AnalogueChannel, if successful.
+	 * @return The pin voltages, indexed by AnalogueChannel, if successful.
 	 */
 	optional<array<float, 4>> getAnalogueChannelVoltages(void) const;
 
@@ -166,41 +168,51 @@ public:
 	/**
 	 * @brief Get all set thresholds for MPPT power conversion.
 	 *
-	 * @return optional<array<float, 4>> The thresholds, indexed by CurrentThreshold, if successful.
+	 * @return Structural representation of the register values, if successful.
 	 */
 	optional<array<float, 4>> getCurrentThresholds(void) const;
 
 protected:
+	template <typename Reg> optional<Reg> getRegister(SM72445::MemoryAddress memoryAddress) const;
+
 	/**
 	 * @brief Get the Analogue Channel Adc Results from the SM72445.
 	 *
-	 * @return optional<Reg0> Structural representation of the register values, if successful.
+	 * @return Structural representation of the register values, if successful.
 	 */
-	optional<Reg0> getAnalogueChannelAdcResults(void) const;
+	optional<Reg0> getAnalogueChannelRegister(void) const;
 
 	/**
 	 * @brief Get the Electrical Measurements ADC Results from the SM72445.
 	 *
-	 * @return optional<Reg1> Structural representation of the register values, if successful.
+	 * @return Structural representation of the register values, if successful.
 	 */
-	optional<Reg1> getElectricalMeasurementsAdcResults(void) const;
+	optional<Reg1> getElectricalMeasurementsRegister(void) const;
+
+	/**
+	 * @brief Get the Reg3 Configuration from the SM72445.
+	 *
+	 * @return Structural representation of the register values, if successful.
+	 */
+	optional<Reg3> getConfigRegister(void) const;
 
 	/**
 	 * @brief Get the Offset Register Values from the SM72445.
 	 *
-	 * @return optional<Reg4> Structural representation of the register values, if successful.
+	 * @return Structural representation of the register values, if successful.
 	 */
-	optional<Reg4> getOffsetRegisterValues(void) const;
+	optional<Reg4> getOffsetRegister(void) const;
 
 	/**
 	 * @brief Get the register binary values for the current MPPT thresholds.
 	 *
-	 * @return optional<array<uint16_t, 4>> The register values, indexed by CurrentThreshold, if successful.
+	 * @return Structural representation of the register values, if successful.
 	 */
-	optional<Reg5> getThresholdRegisterValues(void) const;
+	optional<Reg5> getThresholdRegister(void) const;
 
 	/**
-	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference vDDA.
+	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed supply voltage reference
+	 * vDDA.
 	 *
 	 * @param adcResult The ADC Result to convert.
 	 * @param resolution The resolution (in bits) of the ADC measurement.
@@ -261,7 +273,8 @@ private:
 };
 
 /**
- * @brief Extended interface for the SM72445 including convenient (albeit inefficient) methods for single operations.
+ * @brief Extended interface for the SM72445 including convenient (albeit inefficient) methods for single
+ * operations.
  *
  */
 class SM72445_X : SM72445 {

@@ -24,7 +24,7 @@ SM72445::SM72445(
 	  vDDA{vDDA} {}
 
 optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
-	auto regValues = getElectricalMeasurementsAdcResults();
+	auto regValues = getElectricalMeasurementsRegister();
 
 	if (!regValues) return nullopt;
 
@@ -51,7 +51,7 @@ optional<array<float, 4>> SM72445::getElectricalMeasurements(void) const {
 }
 
 optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
-	auto regValues = getAnalogueChannelAdcResults();
+	auto regValues = getAnalogueChannelRegister();
 
 	if (!regValues) return nullopt;
 
@@ -75,7 +75,7 @@ optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
 }
 
 optional<array<float, 4>> SM72445::getOffsets(void) const {
-	auto regValues = getOffsetRegisterValues();
+	auto regValues = getOffsetRegister();
 
 	if (!regValues) return nullopt;
 
@@ -103,7 +103,7 @@ optional<array<float, 4>> SM72445::getOffsets(void) const {
 }
 
 optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
-	const auto thresholdRegValues = getThresholdRegisterValues();
+	const auto thresholdRegValues = getThresholdRegister();
 
 	if (!thresholdRegValues) return nullopt;
 
@@ -128,40 +128,33 @@ optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
 	return thresholds;
 }
 
-optional<SM72445::Reg0> SM72445::getAnalogueChannelAdcResults(void) const {
-	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG0);
+template <typename Reg> optional<Reg> SM72445::getRegister(SM72445::MemoryAddress memoryAddress) const {
+	auto transmission = this->i2c.read(this->deviceAddress, memoryAddress);
 
 	if (!transmission) return nullopt;
 
-	Reg0 reg0{transmission.value()};
-	return reg0;
+	Reg reg{*transmission};
+	return reg;
 }
 
-optional<SM72445::Reg1> SM72445::getElectricalMeasurementsAdcResults(void) const {
-	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG1);
-
-	if (!transmission) return nullopt;
-
-	Reg1 reg1{transmission.value()};
-	return reg1;
+optional<SM72445::Reg0> SM72445::getAnalogueChannelRegister(void) const {
+	return getRegister<Reg0>(MemoryAddress::REG0);
 }
 
-optional<SM72445::Reg4> SM72445::getOffsetRegisterValues(void) const {
-	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG4);
-
-	if (!transmission) return nullopt;
-
-	Reg4 reg4{transmission.value()};
-	return reg4;
+optional<SM72445::Reg1> SM72445::getElectricalMeasurementsRegister(void) const {
+	return getRegister<Reg1>(MemoryAddress::REG1);
 }
 
-optional<SM72445 ::Reg5> SM72445::getThresholdRegisterValues(void) const {
-	auto transmission = this->i2c.read(this->deviceAddress, MemoryAddress::REG5);
+optional<SM72445::Reg3> SM72445::getConfigRegister(void) const {
+	return getRegister<Reg3>(MemoryAddress::REG3);
+}
 
-	if (!transmission) return nullopt;
+optional<SM72445::Reg4> SM72445::getOffsetRegister(void) const {
+	return getRegister<Reg4>(MemoryAddress::REG4);
+}
 
-	Reg5 reg5{transmission.value()};
-	return reg5;
+optional<SM72445 ::Reg5> SM72445::getThresholdRegister(void) const {
+	return getRegister<Reg5>(MemoryAddress::REG5);
 }
 
 float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const {

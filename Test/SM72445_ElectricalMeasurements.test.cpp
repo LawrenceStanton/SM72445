@@ -11,7 +11,7 @@
 TEST_F(SM72445_Test, getElectricalMeasurementAdcResultsNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG1))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
 
-	auto adcResults = sm72445.getElectricalMeasurementsAdcResults().value();
+	auto adcResults = sm72445.getElectricalMeasurementsRegister().value();
 	EXPECT_EQ(adcResults[ElectricalProperty::CURRENT_IN], 0x01EFu);
 	EXPECT_EQ(adcResults[ElectricalProperty::VOLTAGE_IN], 0x02F3u);
 	EXPECT_EQ(adcResults[ElectricalProperty::CURRENT_OUT], 0x009Au);
@@ -20,7 +20,7 @@ TEST_F(SM72445_Test, getElectricalMeasurementAdcResultsNormallyReturnsValue) {
 
 TEST_F(SM72445_Test, getElectricalMeasurementAdcResultsReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getElectricalMeasurementsAdcResults(), nullopt);
+	EXPECT_EQ(sm72445.getElectricalMeasurementsRegister(), nullopt);
 }
 
 TEST_F(SM72445_Test, getElectricalMeasurementNormallyReturnsValue) {

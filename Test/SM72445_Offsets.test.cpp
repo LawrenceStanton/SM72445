@@ -11,7 +11,7 @@
 TEST_F(SM72445_Test, getOffsetRegisterValuesNormallyReturnsValue) {
 	EXPECT_CALL(i2c, read(_, Eq(MemoryAddress::REG4))).WillOnce(Return(0x0123'4567'89AB'CDEFul));
 
-	auto registerValues = sm72445.getOffsetRegisterValues().value();
+	auto registerValues = sm72445.getOffsetRegister().value();
 	EXPECT_EQ(registerValues[ElectricalProperty::CURRENT_IN], 0xEFu);
 	EXPECT_EQ(registerValues[ElectricalProperty::VOLTAGE_IN], 0xCDu);
 	EXPECT_EQ(registerValues[ElectricalProperty::CURRENT_OUT], 0xABu);
@@ -20,7 +20,7 @@ TEST_F(SM72445_Test, getOffsetRegisterValuesNormallyReturnsValue) {
 
 TEST_F(SM72445_Test, getOffsetRegisterValuesReturnsNulloptIfI2CReadFails) {
 	disableI2C();
-	EXPECT_EQ(sm72445.getOffsetRegisterValues(), nullopt);
+	EXPECT_EQ(sm72445.getOffsetRegister(), nullopt);
 }
 
 TEST_F(SM72445_Test, getOffsetsNormallyReturnsValue) {
