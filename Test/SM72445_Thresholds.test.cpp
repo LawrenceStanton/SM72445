@@ -99,6 +99,6 @@ TEST_F(SM72445_X_Test, getOutputLowThresholdReturnsNulloptIfI2CReadFails) {
 }
 
 TEST_F(SM72445_X_Test, getOutputLowThresholdReturnsNulloptIfGivenPropertyInvalid) {
-	ON_CALL(i2c, read).WillByDefault(Return(0x0ul));
+	EXPECT_CALL(i2c, read).Times(AnyNumber()).WillRepeatedly(Return(0x0ull));
 	EXPECT_EQ(sm72445.getCurrentThreshold(static_cast<CurrentThreshold>(0xFFu)), nullopt);
 }

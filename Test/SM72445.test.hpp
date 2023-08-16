@@ -16,6 +16,7 @@
 #include "SM72445.hpp"
 
 using ::testing::_;
+using ::testing::AnyNumber;
 using ::testing::Eq;
 using ::testing::Return;
 using ::testing::ReturnArg;
@@ -51,9 +52,9 @@ public:
 	MockedI2C i2c{};
 	SM72445	  sm72445{i2c, DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
 
-	void disableI2C(void) {
-		ON_CALL(i2c, read).WillByDefault(Return(nullopt));
-		ON_CALL(i2c, write).WillByDefault(Return(nullopt));
+	void disableI2C() {
+		EXPECT_CALL(i2c, read).Times(AnyNumber()).WillRepeatedly(Return(nullopt));
+		EXPECT_CALL(i2c, write).Times(AnyNumber()).WillRepeatedly(Return(nullopt));
 	}
 };
 

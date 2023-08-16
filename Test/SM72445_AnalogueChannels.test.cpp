@@ -58,6 +58,6 @@ TEST_F(SM72445_X_Test, getAnalogueChannelVoltageReturnsNulloptIfI2CReadFails) {
 }
 
 TEST_F(SM72445_X_Test, getAnalogueChannelVoltageReturnsNulloptIfChannelIsInvalid) {
-	ON_CALL(i2c, read).WillByDefault(Return(0x0ull));
+	EXPECT_CALL(i2c, read).Times(AnyNumber()).WillRepeatedly(Return(0x0ull));
 	EXPECT_EQ(sm72445.getAnalogueChannelVoltage(static_cast<AnalogueChannel>(0xFF)), nullopt);
 }

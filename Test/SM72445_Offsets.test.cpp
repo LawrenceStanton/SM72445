@@ -97,6 +97,6 @@ TEST_F(SM72445_X_Test, getOffsetReturnsNulloptIfI2CReadFails) {
 }
 
 TEST_F(SM72445_X_Test, getOffsetReturnsNulloptIfGivenPropertyInvalid) {
-	ON_CALL(i2c, read).WillByDefault(Return(0x0ul));
+	EXPECT_CALL(i2c, read).Times(AnyNumber()).WillRepeatedly(Return(0x0ull));
 	EXPECT_EQ(sm72445.getOffset(static_cast<ElectricalProperty>(0xFFu)), nullopt);
 }
