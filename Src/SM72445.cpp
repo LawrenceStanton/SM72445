@@ -257,25 +257,12 @@ SM72445::Reg3::Reg3(Register reg)
 	  vOutMax{static_cast<uint16_t>((reg >> 20u) & 0x3FFu)}, //
 	  tdOff{static_cast<uint8_t>((reg >> 17u) & 0x7u)},		 //
 	  tdOn{static_cast<uint8_t>((reg >> 14u) & 0x7u)},		 //
-	  dcOpen{static_cast<uint8_t>((reg >> 5u) & 0x3FFu)},	 //
+	  dcOpen{static_cast<uint16_t>((reg >> 5u) & 0x1FFu)},	 //
 	  passThroughSelect{!!((reg >> 4u) & 0x1u)},			 //
 	  passThroughManual{!!((reg >> 3u) & 0x1u)},			 //
 	  bbReset{!!((reg >> 2u) & 0x1u)},						 //
 	  clkOeManual{!!((reg >> 1u) & 0x1u)},					 //
 	  openLoopOperation{!!(reg & 0x1u)} {}
-// SM72445::Reg3::Reg3(Register reg)
-// 	: overrideAdcProgramming{static_cast<Override>(!!(reg & (0x1ull << 46u)))},
-// 	  a2Override{static_cast<Register>((reg & (0x7ull << 40u)) >> 40u)},
-// 	  iOutMax{static_cast<Register>((reg & (0x3FFull << 30u)) >> 30u)},
-// 	  vOutMax{static_cast<Register>((reg & (0x3FFull << 20u)) >> 20u)},
-// 	  tdOff{static_cast<Register>((reg & (0x7ull << 17u)) >> 17u)},
-// 	  tdOn{static_cast<Register>((reg & (0x7ull << 14u)) >> 14u)},
-// 	  dcOpen{static_cast<Register>((reg & (0x3FFull << 5u)) >> 5u)},
-// 	  passThroughSelect{static_cast<PassThrough>(!!(reg & (0x1ull << 4u)))},
-// 	  passThroughManual{static_cast<PassThrough>(!!(reg & (0x1ull << 3u)))}, //
-// 	  bbReset{static_cast<bool>(reg & (0x1ull << 2u))},						 //
-// 	  clkOeManual{static_cast<bool>(reg & (0x1ull << 1u))},
-// 	  openLoopOperation{static_cast<Override>(!!(reg & (0x1ull << 0u)))} {}
 
 SM72445::Reg3::operator Register() const {
 	const Register reg = (static_cast<Register>(this->overrideAdcProgramming & 0x1u) << 46u)
