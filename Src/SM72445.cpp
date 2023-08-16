@@ -64,7 +64,7 @@ optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
 	};
 
 	for (auto property : properties) {
-		const uint16_t adcResult = regValues.value()[property];
+		const uint16_t adcResult = (*regValues)[property];
 
 		const float voltage = convertAdcResultToPinVoltage(adcResult, 10u);
 
@@ -89,7 +89,7 @@ optional<array<float, 4>> SM72445::getOffsets(void) const {
 	array<float, 4> offsets;
 
 	for (auto property : properties) {
-		const uint16_t adcOffset = regValues.value()[property];
+		const uint16_t adcOffset = (*regValues)[property];
 
 		const float gain = getGain(property);
 		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.
@@ -116,7 +116,7 @@ optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
 	};
 
 	for (auto property : properties) {
-		const uint16_t adcThreshold = thresholdRegValues.value()[property];
+		const uint16_t adcThreshold = (*thresholdRegValues)[property];
 
 		const float gain = getGain(property);
 		if (gain == 0.0f) return nullopt; // Protect against divide by zero error.

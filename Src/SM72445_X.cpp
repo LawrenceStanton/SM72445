@@ -49,7 +49,7 @@ optional<float> SM72445_X::getOffset(ElectricalProperty property) const {
 	auto offsets = getOffsets();
 	if (!offsets) return nullopt;
 	else {
-		if (static_cast<uint8_t>(property) >= offsets.value().size()) return nullopt;
+		if (static_cast<uint8_t>(property) >= (*offsets).size()) return nullopt;
 		else return offsets.value()[static_cast<uint8_t>(property)];
 	}
 }
@@ -62,5 +62,5 @@ static inline optional<float>
 getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index) {
 	if (!measurements) return nullopt;
 	if (index >= measurements.value().size()) return nullopt;
-	return measurements.value()[index];
+	return (*measurements)[index];
 }
