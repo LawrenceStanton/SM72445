@@ -9,9 +9,10 @@ enable_language(CXX)
 set(CMAKE_CXX_STANDARD 17) # Requires std::optional in C++17.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+file(GLOB LIBRARY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Src/*.cpp)
+
 add_library(${LIBRARY} STATIC
-	Src/SM72445.cpp
-	Src/SM72445_X.cpp
+	${LIBRARY_SOURCES}
 )
 
 target_include_directories(${LIBRARY} PUBLIC
