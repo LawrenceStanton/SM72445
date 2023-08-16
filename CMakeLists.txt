@@ -32,18 +32,9 @@ if(NOT CMAKE_CROSSCOMPILING)
 	)
 	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 	FetchContent_MakeAvailable(googletest)
-
 	enable_testing()
 
-	target_link_libraries(${LIBRARY} PRIVATE
-		GTest::gtest
-	)
-
 	target_compile_options(${LIBRARY} PRIVATE
-		$<$<BOOL:${SM72445_CODE_COVERAGE}>:--coverage>
-	)
-
-	target_link_options(${LIBRARY} PRIVATE
 		$<$<BOOL:${SM72445_CODE_COVERAGE}>:--coverage>
 	)
 
@@ -53,15 +44,6 @@ if(NOT CMAKE_CROSSCOMPILING)
 
 	add_executable(${TEST_EXECUTABLE}
 		${TEST_SOURCES}
-	)
-
-	target_compile_options(${TEST_EXECUTABLE} PRIVATE
-		$<$<BOOL:${SM72445_CODE_COVERAGE}>:--coverage>
-	)
-
-	target_include_directories(${TEST_EXECUTABLE} PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}/Inc
-		${CMAKE_CURRENT_SOURCE_DIR}/Test
 	)
 
 	target_link_libraries(${TEST_EXECUTABLE} PRIVATE
