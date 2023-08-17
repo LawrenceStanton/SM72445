@@ -46,6 +46,10 @@ if(NOT CMAKE_CROSSCOMPILING)
 		${TEST_SOURCES}
 	)
 
+	target_include_directories(${TEST_EXECUTABLE} PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/Test/Inc
+	)
+
 	target_link_libraries(${TEST_EXECUTABLE} PRIVATE
 		${PROJECT_NAME}::${LIBRARY}
 		GTest::gtest_main
