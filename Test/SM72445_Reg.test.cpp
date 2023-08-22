@@ -40,7 +40,7 @@ TEST(SM72445_Reg0, constructsWithRegisterValue) {
 	EXPECT_EQ(reg0Alt2.ADC6, 0x0155u);
 }
 
-TEST(SM72445_Reg0, registerConstructsBinaryRepresentation) {
+TEST(SM72445_Reg0, registerCastConstructsBinaryRepresentation) {
 	for (uint64_t value : {
 			 0x0ul,
 			 0x1ul,
@@ -130,6 +130,23 @@ TEST(SM72445_Reg1, indexOperatorReturnsZeroIfGivenInvalidChannel) {
 	EXPECT_EQ(reg1[static_cast<ElectricalProperty>(0xFFu)], 0x0u);
 }
 
+TEST(SM72445_Reg3, defaultConstructsToResetValue) {
+	SM72445::Reg3 reg3{};
+
+	EXPECT_EQ(reg3.overrideAdcProgramming, false);
+	EXPECT_EQ(reg3.a2Override, 0x0u);
+	EXPECT_EQ(reg3.iOutMax, 1023u);
+	EXPECT_EQ(reg3.vOutMax, 1023u);
+	EXPECT_EQ(reg3.tdOff, 0x3u);
+	EXPECT_EQ(reg3.tdOn, 0x3u);
+	EXPECT_EQ(reg3.dcOpen, 0x0FFu);
+	EXPECT_EQ(reg3.passThroughSelect, false);
+	EXPECT_EQ(reg3.passThroughManual, false);
+	EXPECT_EQ(reg3.bbReset, false);
+	EXPECT_EQ(reg3.clkOeManual, false);
+	EXPECT_EQ(reg3.openLoopOperation, false);
+}
+
 TEST(SM72445_Reg3, constructsWithRegisterValue) {
 	SM72445::Reg3 reg3Zero{Register(0x0ul)};
 	EXPECT_EQ(reg3Zero.overrideAdcProgramming, false);
@@ -188,20 +205,65 @@ TEST(SM72445_Reg3, constructsWithRegisterValue) {
 	EXPECT_EQ(reg3Alt2.openLoopOperation, false);
 }
 
-TEST(SM72445_Reg3, registerConstructsBinaryRepresentation) {
-	const Register reg3UsedBitsMask = 0x1'CFFF'FFFF'FFFFul;
-	for (Register value : {
-			 0x0ul,
-			 0x1ul,
-			 ~0x0ul,
-			 0x5555'5555'5555'5555ul,
-			 0xAAAA'AAAA'AAAA'AAAAul,
-			 0xA6'1239'FE42'FEDCul,
-		 }) {
-		SM72445::Reg3  reg3{value};
-		const Register regOnlyUsedBits = Register(reg3) & reg3UsedBitsMask;
-		EXPECT_EQ(Register(reg3), regOnlyUsedBits);
-	}
+TEST(SM72445_Reg3, registerCastConstructsBinaryRepresentation) {
+	// ! All reserved bits assumed to be set to zero.
+	SM72445::Reg3 reg3{};
+
+	reg3.overrideAdcProgramming = true;
+	reg3.a2Override				= 0x7u;
+	reg3.iOutMax				= 0x3FFu;
+	reg3.vOutMax				= 0x3FFu;
+	reg3.tdOff					= 0x7u;
+	reg3.tdOn					= 0x7u;
+	reg3.dcOpen					= 0x1FFu;
+	reg3.passThroughSelect		= true;
+	reg3.passThroughManual		= true;
+	reg3.bbReset				= true;
+	reg3.clkOeManual			= true;
+	reg3.openLoopOperation		= true;
+	EXPECT_EQ(Register(reg3), 0x0000'47FF'FFFF'FFFFul);
+
+	reg3.overrideAdcProgramming = false;
+	reg3.a2Override				= 0x0u;
+	reg3.iOutMax				= 0x0u;
+	reg3.vOutMax				= 0x0u;
+	reg3.tdOff					= 0x0u;
+	reg3.tdOn					= 0x0u;
+	reg3.dcOpen					= 0x0u;
+	reg3.passThroughSelect		= false;
+	reg3.passThroughManual		= false;
+	reg3.bbReset				= false;
+	reg3.clkOeManual			= false;
+	reg3.openLoopOperation		= false;
+	EXPECT_EQ(Register(reg3), 0x0000'0000'0000'0000ul);
+
+	reg3.overrideAdcProgramming = true;
+	reg3.a2Override				= 0x5u;
+	reg3.iOutMax				= 0x155u;
+	reg3.vOutMax				= 0x155u;
+	reg3.tdOff					= 0x2u;
+	reg3.tdOn					= 0x5u;
+	reg3.dcOpen					= 0x0AAu;
+	reg3.passThroughSelect		= true;
+	reg3.passThroughManual		= false;
+	reg3.bbReset				= true;
+	reg3.clkOeManual			= false;
+	reg3.openLoopOperation		= true;
+	EXPECT_EQ(Register(reg3), 0x0000'4555'5555'5555ul);
+
+	reg3.overrideAdcProgramming = false;
+	reg3.a2Override				= 0x2u;
+	reg3.iOutMax				= 0x2AAu;
+	reg3.vOutMax				= 0x2AAu;
+	reg3.tdOff					= 0x5u;
+	reg3.tdOn					= 0x2u;
+	reg3.dcOpen					= 0x155u;
+	reg3.passThroughSelect		= false;
+	reg3.passThroughManual		= true;
+	reg3.bbReset				= false;
+	reg3.clkOeManual			= true;
+	reg3.openLoopOperation		= false;
+	EXPECT_EQ(Register(reg3), 0x0000'02AA'AAAA'AAAAul);
 }
 
 TEST(SM72445_Reg4, constructsWithRegisterValue) {
@@ -236,7 +298,8 @@ TEST(SM72445_Reg4, constructsWithRegisterValue) {
 	EXPECT_EQ(reg4Alt2.vOutOffset, 0x55u);
 }
 
-TEST(SM72445_Reg4, registerConstructsBinaryRepresentation) {
+TEST(SM72445_Reg4, registerCastConstructsBinaryRepresentation) {
+	const Register reg3UsedBitsMask = 0x0000'0000'FFFF'FFFFul;
 	for (uint64_t value : {
 			 0x0ul,
 			 0x1ul,
@@ -246,8 +309,8 @@ TEST(SM72445_Reg4, registerConstructsBinaryRepresentation) {
 			 0xFF'FFFF'FFFF'FFFFul,
 			 0xA6'1239'FE42'FEDCul,
 		 }) {
-		SM72445::Reg4 reg4{Register(value)};
-		Register	  regOnlyUsedBits = Register(value & 0x0000'0000'FFFF'FFFFul);
+		SM72445::Reg4  reg4{Register(value)};
+		const Register regOnlyUsedBits = Register(value & reg3UsedBitsMask);
 		EXPECT_EQ(Register(reg4), regOnlyUsedBits);
 	}
 }
@@ -297,7 +360,7 @@ TEST(SM72445_Reg5, constructsWithRegisterValue) {
 	EXPECT_EQ(reg5Alt2.iInHigh, 0x155u);
 }
 
-TEST(SM72445_Reg5, registerConstructsBinaryRepresentation) {
+TEST(SM72445_Reg5, registerCastConstructsBinaryRepresentation) {
 	for (uint64_t value : {
 			 0x0ul,
 			 0x1ul,
