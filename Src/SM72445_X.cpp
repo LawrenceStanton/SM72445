@@ -6,12 +6,14 @@
  ******************************************************************************
  */
 
-#include "SM72445.hpp"
+#include "SM72445_X.hpp"
 
 using std::nullopt;
 
-static inline optional<float>
-getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index);
+static inline optional<float> getOptionalIndexOrNullopt(
+	const optional<const array<float, 4>> &measurements,
+	uint8_t								   index
+);
 
 optional<float> SM72445_X::getInputCurrent(void) const {
 	return getOptionalIndexOrNullopt( //
@@ -42,7 +44,10 @@ optional<float> SM72445_X::getOutputVoltage(void) const {
 }
 
 optional<float> SM72445_X::getAnalogueChannelVoltage(AnalogueChannel channel) const {
-	return getOptionalIndexOrNullopt(getAnalogueChannelVoltages(), static_cast<uint8_t>(channel));
+	return getOptionalIndexOrNullopt(
+		getAnalogueChannelVoltages(),
+		static_cast<uint8_t>(channel)
+	);
 }
 
 optional<float> SM72445_X::getOffset(ElectricalProperty property) const {
@@ -55,11 +60,16 @@ optional<float> SM72445_X::getOffset(ElectricalProperty property) const {
 }
 
 optional<float> SM72445_X::getCurrentThreshold(CurrentThreshold threshold) const {
-	return getOptionalIndexOrNullopt(getCurrentThresholds(), static_cast<uint8_t>(threshold));
+	return getOptionalIndexOrNullopt(
+		getCurrentThresholds(),
+		static_cast<uint8_t>(threshold)
+	);
 }
 
-static inline optional<float>
-getOptionalIndexOrNullopt(const optional<const array<float, 4>> &measurements, uint8_t index) {
+static inline optional<float> getOptionalIndexOrNullopt(
+	const optional<const array<float, 4>> &measurements,
+	uint8_t								   index
+) {
 	if (!measurements) return nullopt;
 	if (index >= measurements.value().size()) return nullopt;
 	return (*measurements)[index];

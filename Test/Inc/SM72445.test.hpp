@@ -13,7 +13,7 @@
 
 #define SM72445_GTEST_TESTING
 
-#include "SM72445.hpp"
+#include "SM72445_X.hpp"
 
 using ::testing::_;
 using ::testing::AnyNumber;
