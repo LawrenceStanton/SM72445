@@ -347,4 +347,4 @@ enum class SM72445::I2C::MemoryAddress : uint8_t {
 
 #include "Private/SM72445_Reg.hpp"
 
-// #include "Private/SM72445_Config.hpp"
+#include "Private/SM72445_Config.hpp"

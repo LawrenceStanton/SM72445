@@ -74,6 +74,15 @@ optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
 	return voltages;
 }
 
+// optional<SM72445::Config> SM72445::getConfig(void) const {
+// 	auto regValues = getConfigRegister();
+
+// 	if (!regValues) return nullopt;
+
+// 	Config config(*this, *regValues);
+// 	return config;
+// }
+
 optional<array<float, 4>> SM72445::getOffsets(void) const {
 	auto regValues = getOffsetRegister();
 
@@ -125,10 +134,22 @@ optional<array<float, 4>> SM72445::getCurrentThresholds(void) const {
 
 		thresholds[static_cast<uint8_t>(property)] = threshold;
 	}
+
 	return thresholds;
 }
 
-template <typename Reg> optional<Reg> SM72445::getRegister(SM72445::MemoryAddress memoryAddress) const {
+SM72445::ConfigBuilder SM72445::getConfigBuilder(bool fetchCurrentConfig) const {
+	if (fetchCurrentConfig) {
+		auto regValues = getConfigRegister();
+
+		if (regValues) return ConfigBuilder(*this, *regValues);
+	}
+	ConfigBuilder configBuilder(*this);
+	return configBuilder;
+}
+
+template <typename Reg>
+optional<Reg> SM72445::getRegister(SM72445::MemoryAddress memoryAddress) const {
 	auto transmission = this->i2c.read(this->deviceAddress, memoryAddress);
 
 	if (!transmission) return nullopt;
@@ -157,7 +178,8 @@ optional<SM72445 ::Reg5> SM72445::getThresholdRegister(void) const {
 	return getRegister<Reg5>(MemoryAddress::REG5);
 }
 
-float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const {
+float SM72445::convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution)
+	const {
 	// ! adcResult is not checked for valid range with respect to resolution here.
 	// Ensure proper masking before calling this function.
 	const float maxAdcResult = (1u << resolution) - 1u;
