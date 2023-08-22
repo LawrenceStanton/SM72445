@@ -46,6 +46,12 @@ if(NOT CMAKE_CROSSCOMPILING)
 		${TEST_SOURCES}
 	)
 
+	target_compile_options(${TEST_EXECUTABLE} PRIVATE
+		-Wall
+		-Wextra
+		-Wpedantic
+	)
+
 	target_include_directories(${TEST_EXECUTABLE} PRIVATE
 		${CMAKE_CURRENT_SOURCE_DIR}/Test/Inc
 	)
