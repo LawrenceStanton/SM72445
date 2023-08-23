@@ -125,12 +125,13 @@ ConfigBuilder &ConfigBuilder::setDeadTimeOnTimeOverride(DeadTime deadTime) {
 }
 
 ConfigBuilder &ConfigBuilder::resetPanelModeRegisterOverrideEnable(void) {
-	// TODO
+	this->reg3.passThroughSelect = false;
 	return *this;
 }
 
 ConfigBuilder &ConfigBuilder::setPanelModeRegisterOverride(bool override) {
-	// TODO
+	this->reg3.passThroughManual = override;
+	this->reg3.passThroughSelect = true; // Specified side effect.
 	return *this;
 }
 

@@ -248,3 +248,27 @@ TEST_F(SM72445_ConfigTest, setDeadTimeOnTimeOverrideSetsExpectedBinaryValues) {
 		builder.setDeadTimeOnTimeOverride(deadTime);
 	});
 }
+
+TEST_F(SM72445_ConfigTest, resetPanelModeRegisterOverrideEnableResetsBit) {
+	const Register overrideEnableBit = 0x1ull << 4u;
+	builder.setPanelModeRegisterOverride(true); // Sets as side effect.
+	EXPECT_EQ(builder.build() & overrideEnableBit, overrideEnableBit);
+	builder.resetPanelModeRegisterOverrideEnable();
+	EXPECT_EQ(builder.build() & overrideEnableBit, 0x0ull);
+}
+
+TEST_F(SM72445_ConfigTest, setPanelModeRegisterOverrideSetsExpectedBits) {
+	const Register overrideBit = 0x1ull << 3u;
+	EXPECT_EQ(builder.build() & overrideBit, 0x0ull);
+	builder.setPanelModeRegisterOverride(true);
+	EXPECT_EQ(builder.build() & overrideBit, overrideBit);
+	builder.setPanelModeRegisterOverride(false);
+	EXPECT_EQ(builder.build() & overrideBit, 0x0ull);
+}
+
+TEST_F(SM72445_ConfigTest, setPanelModeRegisterOverrideSetsOverrideEnableBit) {
+	const Register overrideEnableBit = 0x1ull << 4u;
+	EXPECT_EQ(builder.build() & overrideEnableBit, 0x0ull);
+	builder.setPanelModeRegisterOverride(true);
+	EXPECT_EQ(builder.build() & overrideEnableBit, overrideEnableBit);
+}
