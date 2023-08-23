@@ -158,6 +158,5 @@ private:
 
 #ifdef SM72445_GTEST_TESTING
 	friend class SM72445_ConfigTest;
-	FRIEND_TEST(SM72445_ConfigTest, resetAdcProgrammingOverrideEnableResetsBit);
 #endif
 };
