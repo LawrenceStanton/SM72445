@@ -45,6 +45,7 @@ class SM72445_ConfigTest : public ::testing::Test {
 public:
 	MockedI2C i2c{};
 
+	// Don't care but randomised to reveal any arithmetic errors.
 	const float vInGainTest	 = .1f;
 	const float vOutGainTest = .2f;
 	const float iInGainTest	 = .3f;
@@ -130,4 +131,83 @@ TEST_F(SM72445_ConfigTest, setFrequencyAndPanelModeOverrideSetsExpectedBits) {
 		builder.setFrequencyModeOverride(frequencyMode);
 		EXPECT_EQ(builder.build() & a2OverrideBits, expectedValue);
 	}
+}
+
+TEST_F(SM72445_ConfigTest, setMaxOutputCurrentOverrideSetsExpectedBinaryValues) {
+	const uint8_t iOutMaxRegOffset = 30u;
+
+	// Below values hardcoded to match test gain values.
+	EXPECT_EQ(this->iOutGainTest, 0.4f);
+	EXPECT_EQ(this->vDdaTest, 5.0f);
+	std::map<float, Register> expectedValues = {
+		{0.0f, 0b0000000000ull},
+		{0.0125f, 0b0000000001ull},
+		{0.1f, 0b0000001000ull},
+		{0.2f, 0b0000010000ull},
+		{0.5f, 0b0000101000ull},
+		{1.0f, 0b0001010001ull},
+		{5.0f, 0b0110011001ull},
+		{6.25f, 0b0111111111ull},
+		{12.5f, 0b1111111111ull},
+	};
+
+	for (const auto &[current, expectedValue] : expectedValues) {
+		builder.setMaxOutputCurrentOverride(current);
+		const uint16_t iOutMaxSetBits = (builder.build() >> iOutMaxRegOffset) & 0x3FFu;
+		EXPECT_EQ(iOutMaxSetBits, expectedValue)
+			<< "Failed on current value " << current << "A"
+			<< " with expected binary value 0x" << std::hex << expectedValue << ".\n"
+			<< "Actual binary value was 0x" << std::hex
+			<< ((builder.build() >> iOutMaxRegOffset) & 0x3FFu) << ".";
+	}
+}
+
+TEST_F(
+	SM72445_ConfigTest,
+	setMaxOutputCurrentWillDefaultToZeroIfRequestedValueExceedsRange
+) {
+	const uint8_t  iOutMaxRegOffset = 30u;
+	const uint16_t maxCurrent		= this->vDdaTest / this->iOutGainTest;
+	builder.setMaxOutputCurrentOverride(maxCurrent + 1); // Should trigger out of range
+	EXPECT_EQ(builder.build() >> iOutMaxRegOffset & 0x3FFu, 0x0ull);
+}
+
+TEST_F(SM72445_ConfigTest, setMaxOutputVoltageOverrideSetsExpectedBinaryValues) {
+	const uint8_t vOutMaxRegOffset = 20u;
+
+	// Below values hardcoded to match test gain values.
+	EXPECT_EQ(this->vOutGainTest, 0.2f);
+	EXPECT_EQ(this->vDdaTest, 5.0f);
+	std::map<float, Register> expectedValues = {
+		{0.0f, 0b0000000000ull},
+		{0.025f, 0b0000000001ull},
+		{0.1f, 0b0000000100ull},
+		{0.2f, 0b0000001000ull},
+		{0.5f, 0b0000010100ull},
+		{1.0f, 0b0000101000ull},
+		{5.0f, 0b0011001100ull},
+		{6.25f, 0b0011111111ull},
+		{12.5f, 0b0111111111ull},
+		{25.0f, 0b1111111111ull},
+	};
+
+	for (const auto &[voltage, expectedValue] : expectedValues) {
+		builder.setMaxOutputVoltageOverride(voltage);
+		const uint16_t vOutMaxSetBits = (builder.build() >> vOutMaxRegOffset) & 0x3FFu;
+		EXPECT_EQ(vOutMaxSetBits, expectedValue)
+			<< "Failed on voltage value " << voltage << "V"
+			<< " with expected binary value 0x" << std::hex << expectedValue << ".\n"
+			<< "Actual binary value was 0x" << std::hex
+			<< ((builder.build() >> vOutMaxRegOffset) & 0x3FFu) << ".";
+	}
+}
+
+TEST_F(
+	SM72445_ConfigTest,
+	setMaxOutputVoltageWillDefaultToZeroIfRequestedValueExceedsRange
+) {
+	const uint8_t  vOutMaxRegOffset = 20u;
+	const uint16_t maxVoltage		= this->vDdaTest / this->vOutGainTest;
+	builder.setMaxOutputVoltageOverride(maxVoltage + 1); // Should trigger out of range
+	EXPECT_EQ(builder.build() >> vOutMaxRegOffset & 0x3FFu, 0x0ull);
 }

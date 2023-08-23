@@ -68,7 +68,7 @@ struct SM72445::ConfigBuilder {
 
 private:
 	const SM72445 &sm72445;
-	Register	   reg3;
+	Reg3		   reg3;
 
 public:
 	/**

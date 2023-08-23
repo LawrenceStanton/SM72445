@@ -19,14 +19,12 @@ ConfigBuilder::ConfigBuilder(const SM72445 &sm72445, SM72445::Reg3 reg3)
 	: sm72445(sm72445), reg3(reg3) {}
 
 ConfigBuilder &ConfigBuilder::resetAdcProgrammingOverrideEnable(void) {
-	this->reg3 &= ~0b1ull << 46;
+	this->reg3.overrideAdcProgramming = false;
 	return *this;
 }
 
-static Config::PanelMode getPanelModeFromRegister(const Register reg3) {
-	const uint8_t a2Override = reg3 >> 40u & 0x7u;
-
-	switch (a2Override) {
+static Config::PanelMode getPanelModeFromBits(const uint8_t bits) {
+	switch (bits & 0x7u) {
 	case 0x3:
 	case 0x4:
 	case 0x5:
@@ -41,92 +39,77 @@ static Config::PanelMode getPanelModeFromRegister(const Register reg3) {
 	}
 }
 
-static FrequencyMode getFrequencyModeFromRegister(const Register reg3) {
-	const Register a2Override = reg3 >> 40u & 0x7u;
-
-	switch (a2Override) {
-	case 0x0:
-	case 0x3:
-	case 0x6:
-	case 0x7:
-		return FrequencyMode::HIGH;
+static FrequencyMode getFrequencyModeFromBits(const uint8_t bits) {
+	switch (bits & 0x7u) { // Any excess bits will be filtered out.
 	case 0x1:
 	case 0x4:
 		return FrequencyMode::MED;
 	case 0x2:
 	case 0x5:
-	default: // Workaround for compiler warning, should never default given mask above.
 		return FrequencyMode::LOW;
+	case 0x0:
+	case 0x3:
+	case 0x6:
+	case 0x7:
+	default: // Workaround for compiler warning, should never default given mask above.
+		return FrequencyMode::HIGH;
 	}
 }
 
-static Register
-setA2Override(FrequencyMode frequencyMode, PanelMode panelMode, Register reg3) {
+// TODO try const variables
+static uint8_t setA2Override(FrequencyMode frequencyMode, PanelMode panelMode) {
 	// Reference Table 1 in the SM72445 Datasheet for the A2 Override Register Values
-	Register a2Override = (frequencyMode == FrequencyMode::HIGH) ? 0x0
-						: (frequencyMode == FrequencyMode::MED)	 ? 0x1
-																 : 0x2;
+	uint8_t a2Override = (frequencyMode == FrequencyMode::HIGH) ? 0x0
+					   : (frequencyMode == FrequencyMode::MED)	? 0x1
+																: 0x2;
 
 	// Shift 3 units up in register table if using H-Bridge.
 	if (panelMode == PanelMode::USE_H_BRIDGE) { a2Override += 0x3; }
 
-	// Write new ADC Programming Override Enable bits.
-	reg3 &= ~(0x7ull << 40u);
-	reg3 |= (a2Override << 40u);
-
-	// Set ADC Programming Override Enable bit. Specified side effect.
-	reg3 |= (0x1ull << 46u);
-
-	return reg3;
+	return a2Override;
 }
 
 ConfigBuilder &ConfigBuilder::setFrequencyModeOverride(FrequencyMode frequencyMode) {
-	const PanelMode panelMode = getPanelModeFromRegister(this->reg3);
-
-	this->reg3 = setA2Override(frequencyMode, panelMode, this->reg3);
-
+	const PanelMode panelMode		  = getPanelModeFromBits(this->reg3.a2Override);
+	this->reg3.a2Override			  = setA2Override(frequencyMode, panelMode);
+	this->reg3.overrideAdcProgramming = true; // Specified side effect.
 	return *this;
 }
 
 ConfigBuilder &ConfigBuilder::setPanelModeOverride(PanelMode panelMode) {
-	FrequencyMode frequencyMode = getFrequencyModeFromRegister(this->reg3);
-
-	this->reg3 = setA2Override(frequencyMode, panelMode, this->reg3);
-
+	FrequencyMode frequencyMode		  = getFrequencyModeFromBits(this->reg3.a2Override);
+	this->reg3.a2Override			  = setA2Override(frequencyMode, panelMode);
+	this->reg3.overrideAdcProgramming = true; // Specified side effect.
 	return *this;
 }
 
 ConfigBuilder &ConfigBuilder::setMaxOutputCurrentOverride(float current) {
-	const uint8_t regOffset = 30u;
-
-	const Register maxOutputCurrentAdcThreshold =
-		(current * this->sm72445.iOutGain / this->sm72445.vDDA) * 0x3FFull;
+	const uint16_t maxOutputCurrentAdcThreshold =
+		current * this->sm72445.iOutGain / this->sm72445.vDDA * 0x3FFull;
 
 	if (maxOutputCurrentAdcThreshold > 0x3FFu) {
 		// Invalid value, exceeds settable range. Default action set to zero.
-		this->reg3 &= ~(0x3FFull << regOffset);
+		this->reg3.iOutMax = 0x0u;
 		return *this;
 	}
 
-	this->reg3 &= ~(0x3FFull << regOffset) | (maxOutputCurrentAdcThreshold << regOffset);
-
+	this->reg3.iOutMax				  = maxOutputCurrentAdcThreshold;
+	this->reg3.overrideAdcProgramming = true; // Specified side effect.
 	return *this;
 }
 
 ConfigBuilder &ConfigBuilder::setMaxOutputVoltageOverride(float voltage) {
-	const uint8_t regOffset = 20u;
-
-	const Register maxOutputVoltageAdcThreshold =
-		(voltage * this->sm72445.vOutGain / this->sm72445.vDDA) * 0x3FFull;
+	const uint16_t maxOutputVoltageAdcThreshold =
+		voltage * this->sm72445.vOutGain / this->sm72445.vDDA * 0x3FFull;
 
 	if (maxOutputVoltageAdcThreshold > 0x3FFu) {
 		// Invalid value, exceeds settable range. Default action set to zero.
-		this->reg3 &= ~(0x3FFull << regOffset);
+		this->reg3.vOutMax = 0x0u;
 		return *this;
 	}
 
-	this->reg3 &= ~(0x3FFull << regOffset) | (maxOutputVoltageAdcThreshold << regOffset);
-
+	this->reg3.vOutMax				  = maxOutputVoltageAdcThreshold;
+	this->reg3.overrideAdcProgramming = true; // Specified side effect.
 	return *this;
 }
 
@@ -151,5 +134,5 @@ ConfigBuilder &ConfigBuilder::setPanelModeRegisterOverride(bool override) {
 }
 
 ConfigBuilder::ConfigRegister ConfigBuilder::build(void) const {
-	return ConfigRegister(this->reg3);
+	return ConfigRegister(Register(this->reg3));
 }
