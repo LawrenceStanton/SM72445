@@ -14,6 +14,7 @@ using ConfigBuilder = SM72445::ConfigBuilder;
 
 using PanelMode		= Config::PanelMode;
 using FrequencyMode = Config::FrequencyMode;
+using DeadTime		= Config::DeadTime;
 
 ConfigBuilder::ConfigBuilder(const SM72445 &sm72445, SM72445::Reg3 reg3)
 	: sm72445(sm72445), reg3(reg3) {}
@@ -113,13 +114,13 @@ ConfigBuilder &ConfigBuilder::setMaxOutputVoltageOverride(float voltage) {
 	return *this;
 }
 
-ConfigBuilder &ConfigBuilder::setDeadTimeOffTimeOverride(float milliseconds) {
-	// TODO
+ConfigBuilder &ConfigBuilder::setDeadTimeOffTimeOverride(DeadTime deadTime) {
+	this->reg3.tdOff = static_cast<uint8_t>(deadTime);
 	return *this;
 }
 
-ConfigBuilder &ConfigBuilder::setDeadTimeOnTimeOverride(float milliseconds) {
-	// TODO
+ConfigBuilder &ConfigBuilder::setDeadTimeOnTimeOverride(DeadTime deadTime) {
+	this->reg3.tdOn = static_cast<uint8_t>(deadTime);
 	return *this;
 }
 

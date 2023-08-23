@@ -22,6 +22,7 @@ using Reg3			= SM72445::Reg3;
 
 using PanelMode		= ConfigBuilder::PanelMode;
 using FrequencyMode = ConfigBuilder::FrequencyMode;
+using DeadTime		= ConfigBuilder::DeadTime;
 
 using std::nullopt;
 
@@ -63,6 +64,8 @@ public:
 	};
 
 	ConfigBuilder builder{sm72445};
+
+	void setDeadTimeTest(uint8_t bitsOffset, std::function<void(DeadTime)> setDeadTime);
 };
 
 TEST_F(SM72445_ConfigTest, getConfigBuilderByDefaultDoesNotFetchReg3) {
@@ -210,4 +213,38 @@ TEST_F(
 	const uint16_t maxVoltage		= this->vDdaTest / this->vOutGainTest;
 	builder.setMaxOutputVoltageOverride(maxVoltage + 1); // Should trigger out of range
 	EXPECT_EQ(builder.build() >> vOutMaxRegOffset & 0x3FFu, 0x0ull);
+}
+
+void SM72445_ConfigTest::setDeadTimeTest(
+	uint8_t						  bitsOffset,
+	std::function<void(DeadTime)> setDeadTime
+) {
+	std::map<DeadTime, Register> expectedValues = {
+		{DeadTime::ZERO, 0b000ull},
+		{DeadTime::ONE, 0b001ull},
+		{DeadTime::TWO, 0b010ull},
+		{DeadTime::THREE, 0b011ull},
+		{DeadTime::FOUR, 0b100ull},
+		{DeadTime::FIVE, 0b101ull},
+		{DeadTime::SIX, 0b110ull},
+		{DeadTime::MAX, 0b111ull},
+	};
+
+	for (const auto &[deadTime, expectedValue] : expectedValues) {
+		setDeadTime(deadTime);
+		const uint16_t tDeadBits = (builder.build() >> bitsOffset) & 0x7u;
+		EXPECT_EQ(tDeadBits, expectedValue);
+	}
+};
+
+TEST_F(SM72445_ConfigTest, setDeadTimeOffTimeOverrideSetsExpectedBinaryValues) {
+	setDeadTimeTest(17u, [&](DeadTime deadTime) {
+		builder.setDeadTimeOffTimeOverride(deadTime);
+	});
+}
+
+TEST_F(SM72445_ConfigTest, setDeadTimeOnTimeOverrideSetsExpectedBinaryValues) {
+	setDeadTimeTest(14u, [&](DeadTime deadTime) {
+		builder.setDeadTimeOnTimeOverride(deadTime);
+	});
 }

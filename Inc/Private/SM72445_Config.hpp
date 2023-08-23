@@ -65,6 +65,7 @@ struct SM72445::ConfigBuilder {
 	typedef Register ConfigRegister;
 	using FrequencyMode = Config::FrequencyMode;
 	using PanelMode		= Config::PanelMode;
+	using DeadTime		= Config::DeadTime;
 
 private:
 	const SM72445 &sm72445;
@@ -113,18 +114,18 @@ public:
 	/**
 	 * @brief Set the Dead Time Off Time.
 	 *
-	 * @param milliseconds The time to set, in milliseconds.
+	 * @param deadTime The dead time to set.
 	 * @return This ConfigBuilder.
 	 */
-	ConfigBuilder &setDeadTimeOffTimeOverride(float milliseconds);
+	ConfigBuilder &setDeadTimeOffTimeOverride(DeadTime deadTime);
 
 	/**
 	 * @brief Set the Dead Time On Time Override
 	 *
-	 * @param milliseconds The time to set, in milliseconds.
+	 * @param deadTime The dead time to set.
 	 * @return
 	 */
-	ConfigBuilder &setDeadTimeOnTimeOverride(float milliseconds);
+	ConfigBuilder &setDeadTimeOnTimeOverride(DeadTime deadTime);
 
 	/**
 	 * @brief Reset the Panel Mode Override Enable bit.
