@@ -177,12 +177,12 @@ private:
 
 private:
 #ifdef SM72445_GTEST_TESTING
-	friend class SM72445_Test;
+	friend class SM72445_X_Test;
 
-	FRIEND_TEST(SM72445_Test, constructorAssignsArguments);
+	FRIEND_TEST(SM72445_X_Test, constructorAssignsArguments);
 
-	FRIEND_TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue);
-	FRIEND_TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid);
+	FRIEND_TEST(SM72445_X_GainTest, getGainNormallyReturnsCorrespondingGainValue);
+	FRIEND_TEST(SM72445_X_GainTest, getGainReturnsZeroIfGivenPropertyInvalid);
 #endif
 };
 

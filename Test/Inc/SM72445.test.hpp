@@ -15,22 +15,6 @@
 
 #include "SM72445_X.hpp"
 
-using ::testing::_;
-using ::testing::AnyNumber;
-using ::testing::Eq;
-using ::testing::Return;
-using ::testing::ReturnArg;
-
-using Register		= SM72445::I2C::Register;
-using MemoryAddress = SM72445::I2C::MemoryAddress;
-using DeviceAddress = SM72445::I2C::DeviceAddress;
-
-using AnalogueChannel	 = SM72445::AnalogueChannel;
-using CurrentThreshold	 = SM72445::CurrentThreshold;
-using ElectricalProperty = SM72445::ElectricalProperty;
-
-using std::nullopt;
-
 class MockedI2C : public SM72445::I2C {
 public:
 	MOCK_METHOD(
@@ -50,15 +34,14 @@ public:
 class SM72445_Test : public ::testing::Test {
 public:
 	MockedI2C i2c{};
-	SM72445_X sm72445{i2c, DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
+	SM72445	  sm72445{i2c, SM72445::DeviceAddress::ADDR001};
 
 	void disableI2C() {
+		using std::nullopt;
+		using ::testing::AnyNumber;
+		using ::testing::Return;
+
 		EXPECT_CALL(i2c, read).Times(AnyNumber()).WillRepeatedly(Return(nullopt));
 		EXPECT_CALL(i2c, write).Times(AnyNumber()).WillRepeatedly(Return(nullopt));
 	}
-};
-
-class SM72445_X_Test : public SM72445_Test {
-public:
-	SM72445_X sm72445{i2c, DeviceAddress::ADDR001, .5f, .5f, .5f, .5f};
 };

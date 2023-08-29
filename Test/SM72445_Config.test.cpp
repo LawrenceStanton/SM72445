@@ -6,12 +6,7 @@
  ******************************************************************************
  */
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-
-#define SM72445_GTEST_TESTING
-
-#include "SM72445_X.hpp"
+#include "SM72445_X.test.hpp"
 
 #include <bitset>
 
@@ -30,26 +25,8 @@ using DeadTime		= Config::DeadTime;
 
 using std::nullopt;
 
-class MockedI2C : public SM72445::I2C {
+class SM72445_Config : public SM72445_X_Test {
 public:
-	MOCK_METHOD(
-		optional<Register>,
-		read,
-		(DeviceAddress deviceAddress, MemoryAddress memoryAddress),
-		(final)
-	);
-	MOCK_METHOD(
-		optional<Register>,
-		write,
-		(DeviceAddress deviceAddress, MemoryAddress memoryAddress, Register data),
-		(final)
-	);
-};
-
-class SM72445_ConfigTest : public ::testing::Test {
-public:
-	MockedI2C i2c{};
-
 	// Don't care but randomised to reveal any arithmetic errors.
 	const float vInGainTest	 = .1f;
 	const float vOutGainTest = .2f;
@@ -68,7 +45,7 @@ public:
 	};
 };
 
-TEST_F(SM72445_ConfigTest, getConfigReturnsExpectedConfig) {
+TEST_F(SM72445_Config, getConfigReturnsExpectedConfig) {
 	// Expected values hardcoded to these test parameters.
 	EXPECT_EQ(this->vDdaTest, 5.0f);
 	EXPECT_EQ(this->iOutGainTest, 0.4f);
@@ -223,7 +200,7 @@ TEST_F(SM72445_ConfigTest, getConfigReturnsExpectedConfig) {
 	}
 }
 
-TEST_F(SM72445_ConfigTest, setConfigNormallyWritesValuesToReg3) {
+TEST_F(SM72445_Config, setConfigNormallyWritesValuesToReg3) {
 	const Register testReg3Value = 0x1ull;
 	EXPECT_CALL(i2c, write(_, Eq(SM72445::MemoryAddress::REG3), _))
 		.WillOnce(Return(testReg3Value));
@@ -232,7 +209,7 @@ TEST_F(SM72445_ConfigTest, setConfigNormallyWritesValuesToReg3) {
 	EXPECT_EQ(*result, testReg3Value);
 }
 
-TEST_F(SM72445_ConfigTest, setConfigReturnsNulloptIfWriteFails) {
+TEST_F(SM72445_Config, setConfigReturnsNulloptIfWriteFails) {
 	EXPECT_CALL(i2c, write).WillRepeatedly(Return(nullopt));
 	auto result = sm72445.setConfig(0x1ull);
 	EXPECT_FALSE(result.has_value());

@@ -14,6 +14,11 @@ using Reg3 = SM72445::Reg3;
 using Reg4 = SM72445::Reg4;
 using Reg5 = SM72445::Reg5;
 
+using Register			 = SM72445::Register;
+using AnalogueChannel	 = SM72445::AnalogueChannel;
+using ElectricalProperty = SM72445::ElectricalProperty;
+using CurrentThreshold	 = SM72445::CurrentThreshold;
+
 TEST(SM72445_Reg0, constructsWithRegisterValue) {
 	Reg0 reg0{Register(0x0ul)};
 	EXPECT_EQ(reg0.ADC0, 0x0000u);
