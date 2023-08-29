@@ -360,6 +360,15 @@ TEST(SM72445_Reg5, constructsWithRegisterValue) {
 	EXPECT_EQ(reg5Alt2.iInHigh, 0x155u);
 }
 
+TEST(SM72445_Reg5, defaultConstructsToResetValue) {
+	SM72445::Reg5 reg5{};
+
+	EXPECT_EQ(reg5.iInHigh, 40u);
+	EXPECT_EQ(reg5.iInLow, 24u);
+	EXPECT_EQ(reg5.iOutHigh, 40u);
+	EXPECT_EQ(reg5.iOutLow, 24u);
+}
+
 TEST(SM72445_Reg5, registerCastConstructsBinaryRepresentation) {
 	for (uint64_t value : {
 			 0x0ul,
