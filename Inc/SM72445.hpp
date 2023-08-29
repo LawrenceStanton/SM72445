@@ -145,6 +145,7 @@ public:
 
 	struct Config;
 	class ConfigBuilder;
+	typedef Register ConfigRegister;
 
 public:
 	SM72445(
@@ -181,6 +182,14 @@ public:
 	 * @return The configuration, if successful.
 	 */
 	optional<Config> getConfig(void) const;
+
+	/**
+	 * @brief Set the Configuration of the SM72445.
+	 *
+	 * @param configRegister The configuration to set. See Sm72445::Config for builder.
+	 * @return optional<Register> The value written to Reg5, if the write was successful.
+	 */
+	optional<Register> setConfig(ConfigRegister configRegister) const;
 
 	/**
 	 * @brief Get the ADC measurement offsets for all electrical properties.

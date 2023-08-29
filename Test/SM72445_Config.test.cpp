@@ -16,6 +16,7 @@
 #include <bitset>
 
 using ::testing::_;
+using ::testing::Eq;
 using ::testing::Return;
 
 using Register		= SM72445::Register;
@@ -429,4 +430,19 @@ TEST_F(SM72445_ConfigTest, setPanelModeRegisterOverrideSetsOverrideEnableBit) {
 	EXPECT_EQ(builder.build() & overrideEnableBit, 0x0ull);
 	builder.setPanelModeRegisterOverride(true);
 	EXPECT_EQ(builder.build() & overrideEnableBit, overrideEnableBit);
+}
+
+TEST_F(SM72445_ConfigTest, setConfigNormallyWritesValuesToReg3) {
+	const Register testReg3Value = 0x1ull;
+	EXPECT_CALL(i2c, write(_, Eq(SM72445::MemoryAddress::REG3), _))
+		.WillOnce(Return(testReg3Value));
+	auto result = sm72445.setConfig(testReg3Value);
+	EXPECT_TRUE(result.has_value());
+	EXPECT_EQ(*result, testReg3Value);
+}
+
+TEST_F(SM72445_ConfigTest, setConfigReturnsNulloptIfWriteFails) {
+	EXPECT_CALL(i2c, write).WillRepeatedly(Return(nullopt));
+	auto result = sm72445.setConfig(0x1ull);
+	EXPECT_FALSE(result.has_value());
 }

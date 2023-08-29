@@ -83,6 +83,10 @@ optional<SM72445::Config> SM72445::getConfig(void) const {
 	return config;
 }
 
+optional<SM72445::Register> SM72445::setConfig(ConfigRegister configRegister) const {
+	return this->i2c.write(this->deviceAddress, MemoryAddress::REG3, configRegister);
+}
+
 optional<array<float, 4>> SM72445::getOffsets(void) const {
 	auto regValues = getOffsetRegister();
 

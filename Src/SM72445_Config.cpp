@@ -152,6 +152,6 @@ ConfigBuilder &ConfigBuilder::setPanelModeRegisterOverride(bool override) {
 	return *this;
 }
 
-ConfigBuilder::ConfigRegister ConfigBuilder::build(void) const {
+SM72445::ConfigRegister ConfigBuilder::build(void) const {
 	return ConfigRegister(Register(this->reg3));
 }

@@ -61,7 +61,6 @@ private:
 
 // TODO: Restore constexpr specifiers.
 struct SM72445::ConfigBuilder {
-	typedef Register ConfigRegister;
 	using FrequencyMode = Config::FrequencyMode;
 	using PanelMode		= Config::PanelMode;
 	using DeadTime		= Config::DeadTime;
