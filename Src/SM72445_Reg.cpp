@@ -8,19 +8,25 @@
 
 #include "SM72445.hpp"
 
-SM72445::Reg0::Reg0(Register reg)
+using Reg0 = SM72445::Reg0;
+using Reg1 = SM72445::Reg1;
+using Reg3 = SM72445::Reg3;
+using Reg4 = SM72445::Reg4;
+using Reg5 = SM72445::Reg5;
+
+Reg0::Reg0(Register reg)
 	: ADC0(static_cast<uint16_t>((reg >> 00u) & 0x3FFu)), //
 	  ADC2(static_cast<uint16_t>((reg >> 10u) & 0x3FFu)), //
 	  ADC4(static_cast<uint16_t>((reg >> 20u) & 0x3FFu)), //
 	  ADC6(static_cast<uint16_t>((reg >> 30u) & 0x3FFu)) {}
 
-SM72445::Reg0::Reg0(uint16_t ADC0, uint16_t ADC2, uint16_t ADC4, uint16_t ADC6)
+Reg0::Reg0(uint16_t ADC0, uint16_t ADC2, uint16_t ADC4, uint16_t ADC6)
 	: ADC6{ADC6}, //
 	  ADC4{ADC4}, //
 	  ADC2{ADC2}, //
 	  ADC0{ADC0} {};
 
-SM72445::Reg0::operator Register() const {
+Reg0::operator Register() const {
 	auto reg = static_cast<Register>(this->ADC0) << 0u	//
 			 | static_cast<Register>(this->ADC2) << 10u //
 			 | static_cast<Register>(this->ADC4) << 20u //
@@ -28,7 +34,7 @@ SM72445::Reg0::operator Register() const {
 	return reg;
 }
 
-uint16_t SM72445::Reg0::operator[](AnalogueChannel channel) const {
+uint16_t Reg0::operator[](AnalogueChannel channel) const {
 	switch (channel) {
 	case AnalogueChannel::CH0:
 		return this->ADC0;
@@ -43,19 +49,19 @@ uint16_t SM72445::Reg0::operator[](AnalogueChannel channel) const {
 	}
 }
 
-SM72445::Reg1::Reg1(Register reg)
+Reg1::Reg1(Register reg)
 	: iIn{static_cast<uint16_t>((reg >> 00u) & 0x3FFu)},  //
 	  vIn{static_cast<uint16_t>((reg >> 10u) & 0x3FFu)},  //
 	  iOut{static_cast<uint16_t>((reg >> 20u) & 0x3FFu)}, //
 	  vOut{static_cast<uint16_t>((reg >> 30u) & 0x3FFu)} {}
 
-SM72445::Reg1::Reg1(uint16_t iIn, uint16_t vIn, uint16_t iOut, uint16_t vOut)
+Reg1::Reg1(uint16_t iIn, uint16_t vIn, uint16_t iOut, uint16_t vOut)
 	: vOut{vOut}, //
 	  iOut{iOut}, //
 	  vIn{vIn},	  //
 	  iIn{iIn} {};
 
-SM72445::Reg1::operator Register() const {
+Reg1::operator Register() const {
 	auto reg = static_cast<Register>(this->iIn) << 0u	//
 			 | static_cast<Register>(this->vIn) << 10u	//
 			 | static_cast<Register>(this->iOut) << 20u //
@@ -63,7 +69,7 @@ SM72445::Reg1::operator Register() const {
 	return reg;
 }
 
-uint16_t SM72445::Reg1::operator[](ElectricalProperty property) const {
+uint16_t Reg1::operator[](ElectricalProperty property) const {
 	switch (property) {
 	case ElectricalProperty::CURRENT_IN:
 		return this->iIn;
@@ -78,7 +84,7 @@ uint16_t SM72445::Reg1::operator[](ElectricalProperty property) const {
 	}
 }
 
-SM72445::Reg3::Reg3()
+Reg3::Reg3()
 	: overrideAdcProgramming{false}, //
 	  a2Override{0x0u},				 //
 	  iOutMax{1023u},				 //
@@ -92,7 +98,7 @@ SM72445::Reg3::Reg3()
 	  clkOeManual{false},			 //
 	  openLoopOperation{false} {}
 
-SM72445::Reg3::Reg3(Register reg)
+Reg3::Reg3(Register reg)
 	: overrideAdcProgramming{!!((reg >> 46u) & 0x1u)},		 //
 	  a2Override{static_cast<uint8_t>((reg >> 40u) & 0x7u)}, //
 	  iOutMax{static_cast<uint16_t>((reg >> 30u) & 0x3FFu)}, //
@@ -106,7 +112,7 @@ SM72445::Reg3::Reg3(Register reg)
 	  clkOeManual{!!((reg >> 1u) & 0x1u)},					 //
 	  openLoopOperation{!!(reg & 0x1u)} {}
 
-SM72445::Reg3::operator Register() const {
+Reg3::operator Register() const {
 	const Register reg =
 		(static_cast<Register>(this->overrideAdcProgramming & 0x1u) << 46u)
 		| (static_cast<Register>(this->a2Override) << 40u)				//
@@ -123,31 +129,26 @@ SM72445::Reg3::operator Register() const {
 	return reg;
 };
 
-SM72445::Reg4::Reg4(Register reg)
+Reg4::Reg4(Register reg)
 	: iInOffset{static_cast<uint8_t>((reg >> 0u) & 0xFFu)},	  //
 	  vInOffset{static_cast<uint8_t>((reg >> 8u) & 0xFFu)},	  //
 	  iOutOffset{static_cast<uint8_t>((reg >> 16u) & 0xFFu)}, //
 	  vOutOffset{static_cast<uint8_t>((reg >> 24u) & 0xFFu)} {}
 
-SM72445::Reg4::Reg4(
-	uint8_t iInOffset,
-	uint8_t vInOffset,
-	uint8_t iOutOffset,
-	uint8_t vOutOffset
-)
+Reg4::Reg4(uint8_t iInOffset, uint8_t vInOffset, uint8_t iOutOffset, uint8_t vOutOffset)
 	: vOutOffset{vOutOffset}, //
 	  iOutOffset{iOutOffset}, //
 	  vInOffset{vInOffset},	  //
 	  iInOffset{iInOffset} {}
 
-SM72445::Reg4::operator Register() const {
+Reg4::operator Register() const {
 	return static_cast<Register>(static_cast<Register>(this->iInOffset) << 0u)	 //
 		 | static_cast<Register>(static_cast<Register>(this->vInOffset) << 8u)	 //
 		 | static_cast<Register>(static_cast<Register>(this->iOutOffset) << 16u) //
 		 | static_cast<Register>(static_cast<Register>(this->vOutOffset) << 24u);
 }
 
-uint8_t SM72445::Reg4::operator[](ElectricalProperty property) const {
+uint8_t Reg4::operator[](ElectricalProperty property) const {
 	switch (property) {
 	case ElectricalProperty::CURRENT_IN:
 		return this->iInOffset;
@@ -162,8 +163,8 @@ uint8_t SM72445::Reg4::operator[](ElectricalProperty property) const {
 	}
 }
 
-SM72445::Reg5::Reg5() : iInHigh{40}, iInLow{24}, iOutHigh{40}, iOutLow{24} {}
-SM72445::Reg5::Reg5(
+Reg5::Reg5() : iInHigh{40}, iInLow{24}, iOutHigh{40}, iOutLow{24} {}
+Reg5::Reg5(
 	uint16_t iOutLow,
 	uint16_t iOutHigh,
 	uint16_t iInLow,
@@ -174,13 +175,13 @@ SM72445::Reg5::Reg5(
 	  iOutHigh(iOutHigh), //
 	  iOutLow(iOutLow) {}
 
-SM72445::Reg5::Reg5(Register reg)
+Reg5::Reg5(Register reg)
 	: iOutLow{static_cast<uint16_t>((reg >> 0u) & 0x3FFu)},	  //
 	  iOutHigh{static_cast<uint16_t>((reg >> 10u) & 0x3FFu)}, //
 	  iInLow{static_cast<uint16_t>((reg >> 20u) & 0x3FFu)},	  //
 	  iInHigh{static_cast<uint16_t>((reg >> 30u) & 0x3FFu)} {}
 
-SM72445::Reg5::operator Register() const {
+Reg5::operator Register() const {
 	Register reg = static_cast<Register>(this->iOutLow) << 0u	//
 				 | static_cast<Register>(this->iOutHigh) << 10u //
 				 | static_cast<Register>(this->iInLow) << 20u	//
@@ -188,7 +189,7 @@ SM72445::Reg5::operator Register() const {
 	return reg;
 }
 
-uint16_t SM72445::Reg5::operator[](CurrentThreshold threshold) const {
+uint16_t Reg5::operator[](CurrentThreshold threshold) const {
 	switch (threshold) {
 	case CurrentThreshold::CURRENT_IN_LOW:
 		return this->iInLow;
