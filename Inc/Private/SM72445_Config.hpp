@@ -44,8 +44,8 @@ public:
 	float iOutMax; // Override Maximum Output Current in Amps
 	float vOutMax; // Override Maximum Output Voltage in Volts
 
-	float tdOff;
-	float tdOn; // Dead Time On Time in Milliseconds
+	DeadTime tdOff;
+	DeadTime tdOn;
 
 	bool panelModeOverrideEnable; // Panel Mode Override Enable
 	bool panelModeOverride;		  // Panel Mode Override
@@ -57,7 +57,6 @@ public:
 private:
 	friend class SM72445;
 	explicit Config(const SM72445 &sm72445, const Reg3 &reg3);
-	explicit Config(const SM72445 &sm72445, const Register &reg3);
 };
 
 // TODO: Restore constexpr specifiers.
@@ -155,8 +154,4 @@ public:
 private:
 	friend class SM72445;
 	explicit ConfigBuilder(const SM72445 &sm72445, SM72445::Reg3 reg3 = Reg3());
-
-#ifdef SM72445_GTEST_TESTING
-	friend class SM72445_ConfigTest;
-#endif
 };

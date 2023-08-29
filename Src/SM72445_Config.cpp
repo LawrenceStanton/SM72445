@@ -16,7 +16,24 @@ using PanelMode		= Config::PanelMode;
 using FrequencyMode = Config::FrequencyMode;
 using DeadTime		= Config::DeadTime;
 
-ConfigBuilder::ConfigBuilder(const SM72445 &sm72445, SM72445::Reg3 reg3)
+static PanelMode	 getPanelModeFromBits(const uint8_t bits);
+static FrequencyMode getFrequencyModeFromBits(const uint8_t bits);
+
+Config::Config(const SM72445 &sm72445, const Reg3 &reg3)
+	: sm72445(sm72445),													  //
+	  overrideAdcProgramming(reg3.overrideAdcProgramming),				  //
+	  frequencyMode(getFrequencyModeFromBits(reg3.a2Override)),			  //
+	  panelMode(getPanelModeFromBits(reg3.a2Override)),					  //
+	  iOutMax(reg3.iOutMax * sm72445.vDDA / sm72445.iOutGain / 0x3FFull), //
+	  vOutMax(reg3.vOutMax * sm72445.vDDA / sm72445.vOutGain / 0x3FFull), //
+	  tdOff(static_cast<DeadTime>(reg3.tdOff)),							  //
+	  tdOn(static_cast<DeadTime>(reg3.tdOn)),							  //
+	  panelModeOverrideEnable(reg3.passThroughSelect),					  //
+	  panelModeOverride(reg3.passThroughManual),						  //
+	  clockOutputManualEnable(reg3.clkOeManual),						  //
+	  openLoopOperation(reg3.openLoopOperation) {}
+
+ConfigBuilder::ConfigBuilder(const SM72445 &sm72445, Reg3 reg3)
 	: sm72445(sm72445), reg3(reg3) {}
 
 ConfigBuilder &ConfigBuilder::resetAdcProgrammingOverrideEnable(void) {
@@ -24,7 +41,7 @@ ConfigBuilder &ConfigBuilder::resetAdcProgrammingOverrideEnable(void) {
 	return *this;
 }
 
-static Config::PanelMode getPanelModeFromBits(const uint8_t bits) {
+static PanelMode getPanelModeFromBits(const uint8_t bits) {
 	switch (bits & 0x7u) {
 	case 0x3:
 	case 0x4:

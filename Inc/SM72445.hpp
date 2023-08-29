@@ -180,7 +180,7 @@ public:
 	 *
 	 * @return The configuration, if successful.
 	 */
-	// optional<Config> getConfig(void) const;
+	optional<Config> getConfig(void) const;
 
 	/**
 	 * @brief Get the ADC measurement offsets for all electrical properties.

@@ -74,14 +74,14 @@ optional<array<float, 4>> SM72445::getAnalogueChannelVoltages(void) const {
 	return voltages;
 }
 
-// optional<SM72445::Config> SM72445::getConfig(void) const {
-// 	auto regValues = getConfigRegister();
+optional<SM72445::Config> SM72445::getConfig(void) const {
+	auto regValues = getConfigRegister();
 
-// 	if (!regValues) return nullopt;
+	if (!regValues) return nullopt;
 
-// 	Config config(*this, *regValues);
-// 	return config;
-// }
+	Config config(*this, *regValues);
+	return config;
+}
 
 optional<array<float, 4>> SM72445::getOffsets(void) const {
 	auto regValues = getOffsetRegister();
