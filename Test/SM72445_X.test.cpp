@@ -15,7 +15,7 @@ using ElectricalProperty = SM72445::ElectricalProperty;
 
 TEST_F(SM72445_X_Test, constructorAssignsArguments) {
 	ASSERT_EQ(&sm72445.i2c, &i2c);
-	ASSERT_EQ(sm72445.deviceAddress, DeviceAddress::ADDR001);
+	ASSERT_EQ(sm72445.getDeviceAddress(), DeviceAddress::ADDR001);
 	ASSERT_EQ(sm72445.vInGain, .5f);
 	ASSERT_EQ(sm72445.vOutGain, .5f);
 	ASSERT_EQ(sm72445.iInGain, .5f);

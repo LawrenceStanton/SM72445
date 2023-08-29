@@ -188,7 +188,7 @@ public:
 	 */
 	optional<Reg5> getThresholdRegister(void) const;
 
-	constexpr DeviceAddress getDeviceAddress(void) const;
+	DeviceAddress getDeviceAddress(void) const;
 };
 
 enum class SM72445::I2C::DeviceAddress : uint8_t {

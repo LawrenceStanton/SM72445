@@ -8,6 +8,8 @@
 
 #include "SM72445.hpp"
 
+using DeviceAddress = SM72445::DeviceAddress;
+
 using std::nullopt;
 
 SM72445::SM72445(I2C &i2c, DeviceAddress deviceAddress)
@@ -41,4 +43,8 @@ optional<SM72445::Reg4> SM72445::getOffsetRegister(void) const {
 
 optional<SM72445 ::Reg5> SM72445::getThresholdRegister(void) const {
 	return getRegister<Reg5>(MemoryAddress::REG5);
+}
+
+DeviceAddress SM72445::getDeviceAddress(void) const {
+	return this->deviceAddress;
 }
