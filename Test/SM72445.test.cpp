@@ -19,7 +19,8 @@ TEST_F(SM72445_Test, constructorAssignsArguments) {
 }
 
 TEST_F(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue) {
-	// ? This test only considers the specific resolution cases of 8 and 10 bits, the only ones used by the SM72445.
+	// ? This test only considers the specific resolution cases of 8 and 10 bits, the only
+	// ones used by the SM72445.
 
 	// 8-bit Resolution
 	EXPECT_FLOAT_EQ(sm72445.convertAdcResultToPinVoltage(0x0000u, 8), 0.0f);
@@ -37,7 +38,13 @@ TEST_F(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue) {
 TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue) {
 	const float vInGain = 1.0f, vOutGain = 2.0f, iInGain = 3.0f, iOutGain = 4.0f;
 
-	SM72445 sm72445Gain{*(SM72445::I2C *)(nullptr), DeviceAddress::ADDR001, vInGain, vOutGain, iInGain, iOutGain};
+	SM72445_X sm72445Gain{
+		*(SM72445::I2C *)(nullptr),
+		DeviceAddress::ADDR001,
+		vInGain,
+		vOutGain,
+		iInGain,
+		iOutGain};
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_IN), vInGain);
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_OUT), vOutGain);
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::CURRENT_IN), iInGain);
@@ -50,7 +57,13 @@ TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue) {
 }
 
 TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid) {
-	SM72445 sm72445Gain{*(SM72445::I2C *)(nullptr), DeviceAddress::ADDR001, 1.0f, 1.0f, 1.0f, 1.0f};
+	SM72445_X sm72445Gain{
+		*(SM72445::I2C *)(nullptr),
+		DeviceAddress::ADDR001,
+		1.0f,
+		1.0f,
+		1.0f,
+		1.0f};
 	EXPECT_EQ(sm72445Gain.getGain(static_cast<ElectricalProperty>(0xFFu)), 0.0f);
 	EXPECT_EQ(sm72445Gain.getGain(static_cast<CurrentThreshold>(0xAAu)), 0.0f);
 }

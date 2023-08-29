@@ -6,11 +6,11 @@
  ******************************************************************************
  */
 
-#include "SM72445.hpp"
+#include "SM72445_X.hpp"
 
 using Register		= SM72445::Register;
-using Config		= SM72445::Config;
-using ConfigBuilder = SM72445::ConfigBuilder;
+using Config		= SM72445_X::Config;
+using ConfigBuilder = SM72445_X::ConfigBuilder;
 
 using PanelMode		= Config::PanelMode;
 using FrequencyMode = Config::FrequencyMode;
@@ -19,7 +19,7 @@ using DeadTime		= Config::DeadTime;
 static PanelMode	 getPanelModeFromBits(const uint8_t bits);
 static FrequencyMode getFrequencyModeFromBits(const uint8_t bits);
 
-Config::Config(const SM72445 &sm72445, const Reg3 &reg3)
+Config::Config(const SM72445_X &sm72445, const Reg3 &reg3)
 	: sm72445(sm72445),													  //
 	  overrideAdcProgramming(reg3.overrideAdcProgramming),				  //
 	  frequencyMode(getFrequencyModeFromBits(reg3.a2Override)),			  //
@@ -33,7 +33,7 @@ Config::Config(const SM72445 &sm72445, const Reg3 &reg3)
 	  clockOutputManualEnable(reg3.clkOeManual),						  //
 	  openLoopOperation(reg3.openLoopOperation) {}
 
-ConfigBuilder::ConfigBuilder(const SM72445 &sm72445, Reg3 reg3)
+ConfigBuilder::ConfigBuilder(const SM72445_X &sm72445, Reg3 reg3)
 	: sm72445(sm72445), reg3(reg3) {}
 
 ConfigBuilder &ConfigBuilder::resetAdcProgrammingOverrideEnable(void) {

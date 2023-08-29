@@ -129,13 +129,6 @@ protected:
 	I2C			 &i2c;
 	DeviceAddress deviceAddress;
 
-	const float vDDA;
-
-	const float vInGain;
-	const float vOutGain;
-	const float iInGain;
-	const float iOutGain;
-
 public:
 	struct Reg0;
 	struct Reg1;
@@ -143,80 +136,12 @@ public:
 	struct Reg4;
 	struct Reg5;
 
-	struct Config;
-	class ConfigBuilder;
 	typedef Register ConfigRegister;
 
 public:
-	SM72445(
-		I2C			 &i2c,
-		DeviceAddress deviceAddress,
-		float		  vInGain,	  // Input Voltage Gain = vInAdc : vInReal
-		float		  vOutGain,	  // Output Voltage Gain = vOutAdc : vOutReal
-		float		  iInGain,	  // Input Current Gain = iInAdc : iInReal
-		float		  iOutGain,	  // Output Current Gain = iOutAdc : iOutReal
-		float		  vDDA = 5.0f // Analog Supply Voltage
-	);
+	SM72445(I2C &i2c, DeviceAddress deviceAddress);
 
 	SM72445(const SM72445 &) = delete;
-
-	/**
-	 * @brief Get all electrical measurements from the SM72445.
-	 *
-	 * @return The measurements, indexed by ElectricalProperty, if successful.
-	 * @note Voltage measurements are returned in Volts.
-	 * @note Current measurements are returned in Amps.
-	 */
-	optional<array<float, 4>> getElectricalMeasurements(void) const;
-
-	/**
-	 * @brief Get the Analogue Configuration Channel Pin Voltages.
-	 *
-	 * @return The pin voltages, indexed by AnalogueChannel, if successful.
-	 */
-	optional<array<float, 4>> getAnalogueChannelVoltages(void) const;
-
-	/**
-	 * @brief Get the Configuration of the SM72445.
-	 *
-	 * @return The configuration, if successful.
-	 */
-	optional<Config> getConfig(void) const;
-
-	/**
-	 * @brief Set the Configuration of the SM72445.
-	 *
-	 * @param configRegister The configuration to set. See Sm72445::Config for builder.
-	 * @return optional<Register> The value written to Reg5, if the write was successful.
-	 */
-	optional<Register> setConfig(ConfigRegister configRegister) const;
-
-	/**
-	 * @brief Get the ADC measurement offsets for all electrical properties.
-	 *
-	 * @return optional<array<float, 4>> The offsets indexed by ElectricalProperty, if
-	 * successful.
-	 * @note Voltage measurements are returned in Volts.
-	 * @note Current measurements are returned in Amps.
-	 * @ref SM72445 Datasheet, Page 12, reg4.
-	 */
-	optional<array<float, 4>> getOffsets(void) const;
-
-	/**
-	 * @brief Get all set thresholds for MPPT power conversion.
-	 *
-	 * @return Structural representation of the register values, if successful.
-	 */
-	optional<array<float, 4>> getCurrentThresholds(void) const;
-
-	/**
-	 * @brief Get a Configuration Builder Object.
-	 *
-	 * @param fetchCurrentConfig If true, the current configuration will be fetched from
-	 * the SM72445 and used to initialise the state of the ConfigBuilder.
-	 * @return A ConfigBuilder object.
-	 */
-	ConfigBuilder getConfigBuilder(bool fetchCurrentConfig = false) const;
 
 	/**
 	 * @brief Get a register from the SM72445, parsed into a structural representation.
@@ -262,24 +187,6 @@ public:
 	 * @return Structural representation of the register values, if successful.
 	 */
 	optional<Reg5> getThresholdRegister(void) const;
-
-	/**
-	 * @brief Convert an SM72445 binary ADC result to the pin voltage, given the assumed
-	 * supply voltage reference vDDA.
-	 *
-	 * @param adcResult The ADC Result to convert.
-	 * @param resolution The resolution (in bits) of the ADC measurement.
-	 * @return float The apparent pin voltage.
-	 */
-	float convertAdcResultToPinVoltage(uint16_t adcResult, uint8_t resolution) const;
-
-public:
-	float			getGain(SM72445::ElectricalProperty property) const;
-	float			getGain(SM72445::CurrentThreshold threshold) const;
-	constexpr float getGain(SM72445::AnalogueChannel threshold) const {
-		(void)threshold; // TODO : Improve this workaround
-		return 1.0f;
-	};
 
 	constexpr DeviceAddress getDeviceAddress(void) const;
 
@@ -355,5 +262,3 @@ enum class SM72445::I2C::MemoryAddress : uint8_t {
 };
 
 #include "Private/SM72445_Reg.hpp"
-
-#include "Private/SM72445_Config.hpp"
