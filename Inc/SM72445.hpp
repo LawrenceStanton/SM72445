@@ -189,57 +189,6 @@ public:
 	optional<Reg5> getThresholdRegister(void) const;
 
 	constexpr DeviceAddress getDeviceAddress(void) const;
-
-private:
-#ifdef SM72445_GTEST_TESTING
-	friend class SM72445_Test;
-
-	FRIEND_TEST(SM72445_Test, constructorAssignsArguments);
-
-	FRIEND_TEST(SM72445_GainTest, getGainNormallyReturnsCorrespondingGainValue);
-	FRIEND_TEST(SM72445_GainTest, getGainReturnsZeroIfGivenPropertyInvalid);
-
-	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsNormallyReturnsValue);
-	FRIEND_TEST(SM72445_Test, getAnalogueChannelAdcResultsReturnsNulloptIfI2CReadFails);
-
-	FRIEND_TEST(SM72445_Test, getElectricalMeasurementAdcResultsNormallyReturnsValue);
-	FRIEND_TEST(
-		SM72445_Test,
-		getElectricalMeasurementAdcResultsReturnsNulloptIfI2CReadFails
-	);
-
-	FRIEND_TEST(SM72445_Test, getOffsetRegisterValuesNormallyReturnsValue);
-	FRIEND_TEST(SM72445_Test, getOffsetRegisterValuesReturnsNulloptIfI2CReadFails);
-
-	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesNormallyReturnsValue);
-	FRIEND_TEST(SM72445_Test, getThresholdRegisterValuesReturnsNulloptIfI2CReadFails);
-
-	FRIEND_TEST(SM72445_Test, convertAdcResultToPinVoltageNormallyConvertsValue);
-
-	FRIEND_TEST(SM72445_Reg0, constructsWithRegisterValue);
-	FRIEND_TEST(SM72445_Reg0, registerConstructsBinaryRepresentation);
-	FRIEND_TEST(SM72445_Reg0, indexOperatorReturnsCorrespondingChannelValue);
-	FRIEND_TEST(SM72445_Reg0, indexOperatorReturnsZeroIfGivenInvalidChannel);
-
-	FRIEND_TEST(SM72445_Reg1, constructsWithRegisterValue);
-	FRIEND_TEST(SM72445_Reg1, registerConstructsBinaryRepresentation);
-	FRIEND_TEST(SM72445_Reg1, indexOperatorReturnsCorrespondingChannelValue);
-	FRIEND_TEST(SM72445_Reg1, indexOperatorReturnsZeroIfGivenInvalidChannel);
-
-	FRIEND_TEST(SM72445_Reg3, constructsWithRegisterValue);
-	FRIEND_TEST(SM72445_Reg3, registerConstructsBinaryRepresentation);
-
-	FRIEND_TEST(SM72445_Reg4, constructsWithRegisterValue);
-	FRIEND_TEST(SM72445_Reg4, registerConstructsBinaryRepresentation);
-	FRIEND_TEST(SM72445_Reg4, indexOperatorReturnsCorrespondingChannelValue);
-	FRIEND_TEST(SM72445_Reg4, indexOperatorReturnsZeroIfGivenInvalidChannel);
-
-	FRIEND_TEST(SM72445_Reg5, constructsWithRegisterValue);
-	FRIEND_TEST(SM72445_Reg5, registerConstructsBinaryRepresentation);
-	FRIEND_TEST(SM72445_Reg5, indexOperatorReturnsCorrespondingChannelValue);
-	FRIEND_TEST(SM72445_Reg5, indexOperatorReturnsZeroIfGivenInvalidChannel);
-
-#endif
 };
 
 enum class SM72445::I2C::DeviceAddress : uint8_t {
