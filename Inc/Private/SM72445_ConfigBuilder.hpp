@@ -88,9 +88,16 @@ public:
 	 */
 	ConfigBuilder &setPanelModeRegisterOverride(bool override);
 
-	// Config &setBbReset(bool reset); // Unsupported
-	// void setClockOutputManualEnable(bool enable); // Unsupported
-	// void setOpenLoopOperation(bool enable); // Unsupported
+	/**
+	 * @brief Set the Bb Reset Bit
+	 *
+	 * @param reset Set bit to true or false.
+	 * @return This ConfigBuilder.
+	 */
+	ConfigBuilder &setBbReset(bool reset);
+
+	// ConfigBuilder setClockOutputManualEnable(bool enable); // Unsupported
+	// ConfigBuilder setOpenLoopOperation(bool enable); // Unsupported
 
 	/**
 	 * @brief "Build" the Configuration Register.

@@ -30,6 +30,7 @@ Config::Config(const SM72445_X &sm72445, const Reg3 &reg3)
 	  tdOn(static_cast<DeadTime>(reg3.tdOn)),							  //
 	  panelModeOverrideEnable(reg3.passThroughSelect),					  //
 	  panelModeOverride(reg3.passThroughManual),						  //
+	  bbReset(reg3.bbReset),											  //
 	  clockOutputManualEnable(reg3.clkOeManual),						  //
 	  openLoopOperation(reg3.openLoopOperation) {}
 
@@ -105,8 +106,8 @@ ConfigBuilder &ConfigBuilder::setMaxOutputCurrentOverride(float current) {
 	const uint16_t maxOutputCurrentAdcThreshold =
 		current * this->sm72445.iOutGain / this->sm72445.vDDA * 0x3FFull;
 
-	if (maxOutputCurrentAdcThreshold > 0x3FFu) {
-		// Invalid value, exceeds settable range. Default action set to zero.
+	if (current < 0.0f || maxOutputCurrentAdcThreshold > 0x3FFu) {
+		// Invalid value, outside settable range. Default action set to zero.
 		this->reg3.iOutMax = 0x0u;
 		return *this;
 	}
@@ -120,8 +121,8 @@ ConfigBuilder &ConfigBuilder::setMaxOutputVoltageOverride(float voltage) {
 	const uint16_t maxOutputVoltageAdcThreshold =
 		voltage * this->sm72445.vOutGain / this->sm72445.vDDA * 0x3FFull;
 
-	if (maxOutputVoltageAdcThreshold > 0x3FFu) {
-		// Invalid value, exceeds settable range. Default action set to zero.
+	if (voltage < 0.0f || maxOutputVoltageAdcThreshold > 0x3FFu) {
+		// Invalid value, outside settable range. Default action set to zero.
 		this->reg3.vOutMax = 0x0u;
 		return *this;
 	}
@@ -152,6 +153,10 @@ ConfigBuilder &ConfigBuilder::setPanelModeRegisterOverride(bool override) {
 	return *this;
 }
 
+ConfigBuilder &SM72445_X::ConfigBuilder::setBbReset(bool reset) {
+	this->reg3.bbReset = reset;
+	return *this;
+}
 SM72445::ConfigRegister ConfigBuilder::build(void) const {
 	return ConfigRegister(Register(this->reg3));
 }

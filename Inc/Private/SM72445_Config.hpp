@@ -50,6 +50,8 @@ public:
 	bool panelModeOverrideEnable; // Panel Mode Override Enable
 	bool panelModeOverride;		  // Panel Mode Override
 
+	bool bbReset;
+
 	bool clockOutputManualEnable; // Pin 5 Clock Output Enable
 
 	bool openLoopOperation;

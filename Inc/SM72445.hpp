@@ -188,6 +188,11 @@ public:
 	 */
 	optional<Reg5> getThresholdRegister(void) const;
 
+	/**
+	 * @brief Get the I2C Device Address of this SM72445.
+	 *
+	 * @return DeviceAddress The I2C Device Address of this SM72445.
+	 */
 	DeviceAddress getDeviceAddress(void) const;
 };
 
