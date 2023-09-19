@@ -15,8 +15,9 @@ add_library(${LIBRARY} STATIC
 	${LIBRARY_SOURCES}
 )
 
-target_include_directories(${LIBRARY} PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}/Inc
+target_include_directories(${LIBRARY}
+	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Inc
+	PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Inc/Private
 )
 
 add_library(${LIBRARY}::${LIBRARY} ALIAS ${LIBRARY})
