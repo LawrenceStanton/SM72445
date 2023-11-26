@@ -189,7 +189,8 @@ TEST_F(SM72445_Config, getConfigReturnsExpectedConfig) {
 					// Unused bbReset
 			 false, // Don't care
 			 false, // Don't care
-		 }}};
+		 }}
+	};
 
 	for (const auto &[testReg3Value, expected] : testValues) {
 		EXPECT_CALL(i2c, read).WillOnce(Return(testReg3Value));

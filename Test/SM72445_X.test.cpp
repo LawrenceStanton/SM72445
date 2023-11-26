@@ -49,7 +49,8 @@ TEST(SM72445_X_GainTest, getGainNormallyReturnsCorrespondingGainValue) {
 		vInGain,
 		vOutGain,
 		iInGain,
-		iOutGain};
+		iOutGain
+	};
 
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_IN), vInGain);
 	EXPECT_FLOAT_EQ(sm72445Gain.getGain(ElectricalProperty::VOLTAGE_OUT), vOutGain);
@@ -69,7 +70,8 @@ TEST(SM72445_X_GainTest, getGainReturnsZeroIfGivenPropertyInvalid) {
 		1.0f,
 		1.0f,
 		1.0f,
-		1.0f};
+		1.0f
+	};
 	EXPECT_EQ(sm72445Gain.getGain(static_cast<ElectricalProperty>(0xFFu)), 0.0f);
 	EXPECT_EQ(sm72445Gain.getGain(static_cast<CurrentThreshold>(0xAAu)), 0.0f);
 }
