@@ -50,7 +50,7 @@ public:
 	 * @brief Set the Configuration of the SM72445.
 	 *
 	 * @param configRegister The configuration to set. See Sm72445::Config for builder.
-	 * @return optional<Register> The value written to Reg5, if the write was successful.
+	 * @return optional<Register> The value written to Reg3, if the write was successful.
 	 */
 	optional<Register> setConfig(ConfigRegister configRegister) const;
 
